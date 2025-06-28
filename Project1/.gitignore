@@ -1,4 +1,7 @@
 __pycacge__/
 *.pyc
-temp.py
-test.py
+*.out
+*.jpg
+*.json
+temp.*
+test.*

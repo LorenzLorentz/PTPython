@@ -11,25 +11,24 @@ PRESET_KEY = b"0CoJUm6Qyw8W8jud"
 IV = b"0102030405060708"
 
 def _aes_encrypt(text: bytes, key: bytes) -> bytes:
-    """执行AES-128-CBC加密，并返回Base64编码的字节串"""
+    """AES-128-CBC加密"""
     padded_text = pad(text, AES.block_size, style="pkcs7")
     cipher = AES.new(key, AES.MODE_CBC, IV)
     return base64.b64encode(cipher.encrypt(padded_text))
 
 def _rsa_encrypt(text: bytes) -> str:
-    """对随机密钥执行RSA加密"""
+    """RSA加密"""
     text_int = int(text[::-1].hex(), 16)
     result_int = pow(text_int, int(PUB_KEY, 16), int(MODULUS, 16))
     return format(result_int, 'x').zfill(256)
 
 def encrypt(payload: dict) -> dict:
-    # 1. 将业务数据序列化为JSON字符串，再编码为bytes
     payload_bytes = json.dumps(payload).encode('utf-8')
-    # 2. 生成16字节的随机密钥
+    # 生成16字节的随机密钥
     random_key = "".join(random.choices(string.ascii_letters + string.digits, k=16)).encode('utf-8')
-    # 3. 对payload进行两次AES加密，得到'params'
+    # AES加密，得到'params'
     params = _aes_encrypt(_aes_encrypt(payload_bytes, PRESET_KEY), random_key)
-    # 4. 对随机密钥进行RSA加密，得到'encSecKey'
+    # RSA加密，得到'encSecKey'
     enc_sec_key = _rsa_encrypt(random_key)
     
     return {
