@@ -1,0 +1,546 @@
+/* --- 全局与基础设置 --- */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+    background-color: #f4f4f9; /* 淡灰色背景，让白色卡片更突出 */
+    color: #333;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* --- 1. 导航栏样式 --- */
+.navbar {
+    background-color: #e53935; /* 鲜艳的红色 */
+    color: #fff;
+    padding: 15px 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.navbar .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar-brand {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.navbar-brand .fa-music {
+    margin-right: 8px;
+}
+
+.navbar-links {
+    list-style: none;
+    display: flex;
+    margin: 0;
+    padding: 0;
+    gap: 25px; /* 链接之间的间距 */
+}
+
+.navbar-links a {
+    font-size: 16px;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.navbar-links a:hover {
+    color: #ffcdd2; /* 鼠标悬停时变浅红色 */
+}
+
+/* 搜索框 */
+.search-form {
+    position: relative;
+}
+.search-box {
+    display: flex;
+    align-items: center;
+    background-color: #c62828; /* 深一点的红色 */
+    border-radius: 20px;
+    padding: 5px 12px;
+}
+.search-box input {
+    background: none;
+    border: none;
+    outline: none;
+    color: white;
+    width: 200px;
+}
+.search-box input::placeholder {
+    color: #ffcdd2;
+}
+.search-submit-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0 5px;
+}
+.advanced-search-link {
+    position: absolute;
+    top: 120%; /* 放在搜索框正下方 */
+    left: 0;
+    font-size: 12px;
+    color: #ffcdd2;
+    display: none; /* 默认隐藏 */
+}
+.search-form:hover .advanced-search-link {
+    display: block; /* 鼠标悬停在整个form上时显示 */
+}
+
+
+/* --- 2. 主体内容样式 --- */
+.main-content {
+    display: flex;
+    gap: 30px;
+    padding-top: 40px;
+    padding-bottom: 40px;
+}
+
+.recommended-songs {
+    flex: 2; /* 占据2/3空间 */
+}
+
+.recommended-artists {
+    flex: 1; /* 占据1/3空间 */
+}
+
+h2 {
+    font-size: 28px;
+    border-bottom: 3px solid #e53935;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+h2 .fas {
+    margin-right: 10px;
+}
+
+/* 歌曲网格 */
+.song-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3列 */
+    gap: 20px;
+}
+
+.song-card {
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.song-card:hover {
+    transform: translateY(-5px); /* 鼠标悬停时轻微上浮 */
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+.song-card img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.song-card .song-title {
+    font-size: 16px;
+    margin: 10px 15px 5px;
+    color: #333;
+}
+
+.song-card .song-artist {
+    font-size: 14px;
+    color: #666;
+    margin: 0 15px 15px;
+}
+.song-card .song-artist a:hover {
+    color: #e53935;
+}
+
+
+/* 歌手列表 */
+.artist-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.artist-card {
+    background: #fff;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+}
+.artist-card a {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+}
+.artist-card:hover {
+    background-color: #eceff1;
+}
+
+.artist-card img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%; /* 圆形头像 */
+    margin-right: 15px;
+    object-fit: cover; /* 防止图片变形 */
+}
+
+.artist-card .artist-name {
+    font-weight: 500;
+    font-size: 16px;
+}
+
+/* --- 3. 页脚样式 --- */
+.footer {
+    background-color: #333;
+    color: #aaa;
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 40px;
+}
+
+/* --- 在 style.css 中追加以下样式 --- */
+
+/* --- 歌手详情页特定样式 --- */
+
+/* 1.1 面包屑导航 */
+.breadcrumb {
+    background-color: #f5f5f5;
+    padding: 10px 0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 14px;
+}
+.breadcrumb a {
+    color: #e53935; /* 主题红色 */
+    text-decoration: none;
+}
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+.breadcrumb span {
+    color: #666;
+}
+
+/* 2.1 左侧内容 */
+.artist-main-content {
+    flex: 2; /* 占据3/4空间 */
+}
+.sidebar {
+    flex: 1; /* 占据1/4空间 */
+}
+
+/* 歌手信息头 */
+.artist-header {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 40px;
+}
+.artist-photo {
+    width: 200px;
+    height: 200px;
+    border-radius: 12px;
+    object-fit: cover;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.artist-name {
+    font-size: 48px;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+.artist-intro {
+    font-size: 16px;
+    line-height: 1.7;
+    color: #555;
+}
+
+/* 歌手歌曲列表 */
+.artist-songs h2 {
+    font-size: 24px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+.song-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.song-list li a {
+    display: block;
+    padding: 15px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 18px;
+    color: #333;
+    transition: all 0.3s ease;
+    border-radius: 5px;
+}
+/* 鼠标悬浮引起变化的设计 */
+.song-list li a:hover {
+    background-color: #fffbe2; /* 淡黄色高亮 */
+    color: #e53935; /* 主题红色 */
+    transform: translateX(5px);
+}
+
+/* 分页控件 */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 40px;
+    flex-wrap: wrap; /* 确保在小屏幕上能换行 */
+}
+.page-item, .page-btn {
+    display: inline-block;
+    padding: 8px 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    color: #333;
+    text-decoration: none;
+    transition: background-color 0.3s, color 0.3s;
+}
+.page-item:hover, .page-btn:hover {
+    background-color: #f0f0f0;
+}
+.page-item.active {
+    background-color: #e53935;
+    color: white;
+    border-color: #e53935;
+    font-weight: bold;
+}
+.page-item.ellipsis {
+    border: none;
+    padding: 8px 0;
+}
+.page-jump-form {
+    display: flex;
+    gap: 5px;
+    margin-left: 15px;
+}
+.page-input {
+    width: 50px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 8px;
+}
+.page-input:focus {
+    outline: none;
+    border-color: #e53935;
+}
+
+
+/* 2.2 右侧边栏 */
+.sidebar-widget {
+    margin-bottom: 40px;
+}
+.sidebar-widget h3 {
+    font-size: 20px;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 8px;
+}
+.sidebar-widget h3 .fas {
+    margin-right: 8px;
+    color: #e53935;
+}
+/* 代表作列表 */
+.top-works-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.top-work-card {
+    display: flex;
+    align-items: center;
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    border: 1px solid #f0f0f0;
+}
+.top-work-card:hover {
+    background-color: #f9f9f9;
+    transform: scale(1.03);
+}
+.top-work-card img {
+    width: 40px;
+    height: 40px;
+    border-radius: 5px;
+    margin-right: 12px;
+}
+
+/* --- 在 style.css 中追加以下样式 --- */
+
+/* --- 歌曲详情页特定样式 --- */
+
+/* 2.1 左侧内容 */
+.song-main-content {
+    flex: 3;
+}
+.song-header {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 40px;
+    align-items: flex-start;
+}
+.album-cover {
+    width: 250px;
+    height: 250px;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    flex-shrink: 0; /* 防止图片在flex布局中被压缩 */
+}
+.song-title-large {
+    font-size: 42px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+.song-meta {
+    font-size: 18px;
+    color: #555;
+    line-height: 1.6;
+}
+.song-meta a {
+    color: #e53935;
+    text-decoration: none;
+}
+.song-meta a:hover {
+    text-decoration: underline;
+}
+
+/* 歌词区域 */
+.lyrics-section {
+    margin-bottom: 40px;
+}
+.lyrics-section h2, .comments-section h2 {
+    font-size: 24px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+.lyrics-content {
+    font-size: 16px;
+    line-height: 2;
+    color: #333;
+    transition: max-height 0.7s ease-in-out;
+    overflow: hidden;
+}
+.lyrics-content p {
+    margin: 0;
+}
+/* 折叠时的关键样式 */
+.lyrics-content.collapsed {
+    max-height: 320px; /* 16px字体 * 2行高 * 10行 = 320px */
+}
+.toggle-button {
+    display: block;
+    margin: 15px auto 0;
+    padding: 8px 25px;
+    border: 1px solid #e53935;
+    background-color: transparent;
+    color: #e53935;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+.toggle-button:hover {
+    background-color: #e53935;
+    color: white;
+}
+
+/* 评论区域 */
+.comments-section {
+    margin-bottom: 40px;
+}
+.comment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+.comment-item {
+    display: flex;
+    gap: 15px;
+}
+.comment-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+}
+.comment-body {
+    flex: 1;
+}
+.comment-user {
+    font-weight: bold;
+    color: #333;
+}
+.comment-time {
+    font-size: 12px;
+    color: #999;
+    margin-left: 10px;
+}
+.comment-text {
+    margin: 8px 0 0;
+    line-height: 1.6;
+}
+
+/* 简易分页 */
+.pagination-simple {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 30px;
+    border-top: 1px solid #f0f0f0;
+    padding-top: 20px;
+}
+.page-btn-simple {
+    padding: 8px 18px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    color: #333;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+.page-btn-simple:hover {
+    background-color: #f0f0f0;
+}
+.page-btn-simple.disabled {
+    color: #aaa;
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+    border-color: #eee;
+}
+.page-btn-simple .fas {
+    margin: 0 5px;
+}
+
+/* 2.2 右侧边栏 */
+.simple-song-list {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+.simple-song-list li a {
+    display: block;
+    padding: 8px 0;
+    color: #333;
+    text-decoration: none;
+    border-bottom: 1px dashed #eee;
+    transition: color 0.3s ease;
+}
+.simple-song-list li a:hover {
+    color: #e53935;
+}

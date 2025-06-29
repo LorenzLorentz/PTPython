@@ -1,30 +1,81 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="zh-CN">
 
 <head>
     <meta charset="UTF-8">
-    <title>主页</title>
-    <style>
-        body { font-family: sans-serif; text-align: center; }
-        h1 { color: #333; }
-        ul { list-style: none; padding: 0; }
-        li { margin: 15px 0; }
-        a { text-decoration: none; font-size: 20px; color: #007BFF; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>音乐首页</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 
 <body>
-    <h1>选择一首音乐</h1>
-    <ul>
-        {% for song in song_list %}
-            <li>
-                <a href="{% url 'song_page' song_id=song.id %}">
-                    {{song.name}}
-                </a>
-            </li>
-        {% empty %}
-            <li>暂无音乐</li>
-        {% endfor %}
-    </ul>
+
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="navbar-brand">
+                <i class="fas fa-music"></i> MyMusic
+            </a>
+            
+            <ul class="navbar-links">
+                <li><a href="/songs">所有歌曲</a></li>
+                <li><a href="/artists">所有歌手</a></li>
+            </ul>
+            
+            <div class="search-container">
+                <form action="/search" method="get" class="search-form">
+                    <div class="search-box">
+                        <input type="text" name="q" placeholder="搜索歌曲、歌手...">
+                        <button type="submit" class="search-submit-btn">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <a href="/advanced-search" class="advanced-search-link">高级搜索</a>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content container">
+        <section class="recommended-songs">
+            <h2><i class="fas fa-random"></i> 推荐歌曲</h2>
+            <div class="song-grid">
+                {% for song in song_list %}
+                    <div class="song-card">
+                        <a href="{% url 'song_page' song_id=song.song_id %}">
+                            <img src="{{song.song_cover}}" alt="专辑封面">
+                            <h3 class="song-title">{{song.song_name}}</h3>
+                        </a>
+                        <p class="song-artist"><a href="{% url 'singer_page' singer_id=song.song_singer.0 %}">{{song.song_singer.1}}</a></p>
+                    </div>
+                {% empty %}
+                    <li>暂无音乐</li>
+                {% endfor %}
+            </div>
+        </section>
+
+        <aside class="recommended-artists">
+            <h2><i class="fas fa-user-friends"></i> 推荐歌手</h2>
+            <div class="artist-list">
+                {% for singer in singer_list %}
+                    <div class="artist-card">
+                        <a href="{% url 'singer_page' singer_id=singer.singer_id %}">
+                            <img src="{{singer.singer_image}}" alt="歌手头像">
+                            <span class="artist-name">{{singer.singer_name}}</span>
+                        </a>
+                    </div>
+                {% empty %}
+                    <li>暂无歌手</li>
+                {% endfor %}
+            </div>
+        </aside>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 MyMusic. 保留所有权利。</p>
+        </div>
+    </footer>
+
 </body>
 </html>
