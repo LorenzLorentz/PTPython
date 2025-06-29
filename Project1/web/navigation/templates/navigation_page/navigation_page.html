@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <title>主页</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; }
+        h1 { color: #333; }
+        ul { list-style: none; padding: 0; }
+        li { margin: 15px 0; }
+        a { text-decoration: none; font-size: 20px; color: #007BFF; }
+    </style>
+</head>
+
+<body>
+    <h1>选择一首音乐</h1>
+    <ul>
+        {% for song in song_list %}
+            <li>
+                <a href="{% url 'song_page' song_id=song.id %}">
+                    {{song.name}}
+                </a>
+            </li>
+        {% empty %}
+            <li>暂无音乐</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

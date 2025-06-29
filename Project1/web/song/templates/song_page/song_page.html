@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{song.song_name}} - {{song.song_singer.1}}</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: auto; padding: 20px; }
+        .music-player { text-align: center; border-bottom: 1px solid #ccc; padding-bottom: 20px; }
+        .lyrics-section { margin-top: 20px; }
+        .lyrics { border: 1px solid #eee; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
+        .comments-section { margin-top: 20px; }
+        .comment { border: 1px solid #eee; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
+        .comment-form { margin-top: 30px; }
+        input, textarea { width: 100%; padding: 8px; margin-bottom: 10px; }
+    </style>
+</head>
+
+<body>
+    <a href="{% url 'navigation_page' %}">&larr; 返回导航</a>
+
+    <div class="music-player">
+        <h1>{{song.song_name}}</h1>
+        <h3>Singer: {{song.song_singer.1}}</h3>
+        <img src="{{song.song_cover }}" alt="专辑封面" width="300">
+        <br><br>
+        <audio controls>
+            <source src="{{ song.song_audio }}" type="audio/mpeg">
+            你的浏览器不支持 audio 标签。
+        </audio>
+    </div>
+
+    <div class="lyrics-section">
+        <h2>歌词</h2>
+        
+        {% if song.song_lyric %}
+            <p>{{ song.song_lyric|linebreaksbr }}</p>
+        {% else %}
+            <p>纯音乐</p>
+        {% endif %}
+    </div>
+
+    <div class="comments-section">
+        <h2>评论区</h2>
+        {% for comment in song.song_comments %}
+            <div class="comment">
+                <strong>{{comment.nickname}}</strong>
+                <p>{{comment.content}}</p>
+                <small>{{comment.time}}</small>
+            </div>
+        {% empty %}
+            <p>还没有评论，快来抢沙发！</p>
+        {% endfor %}
+    </div>
+
+    <div class="comment-form">
+        <h3>发表你的评论</h3>
+        <form method="POST">
+            {% csrf_token %}
+            <input type="text" name="nickname" placeholder="你的昵称" required>
+            <br>
+            <textarea name="content" rows="4" placeholder="写下你的评论..." required></textarea>
+            <br>
+            <button type="submit">提交评论</button>
+        </form>
+    </div>
+
+</body>
+</html>
