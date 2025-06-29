@@ -1,0 +1,1 @@
+tmux new-session -d -s crawler "python task.py"

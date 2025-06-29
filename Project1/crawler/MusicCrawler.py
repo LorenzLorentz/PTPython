@@ -6,7 +6,7 @@ import dataclasses
 class SongInfo:
     song_id: str
     song_name: str
-    song_singer: str
+    song_singer: tuple[str, str]
     song_cover: str
     song_lyric: str
     song_url: str
@@ -17,7 +17,7 @@ class SongInfo:
         return json.dumps(data, ensure_ascii=False, indent=4)
 
     def save(self):
-        with open(f"song_info_id={self.song_id}.json", "w") as f:
+        with open(f"Data/Song/song_info_id={self.song_id}.json", "w") as f:
             print(self.to_json(), file=f)
 
 @dataclasses.dataclass
@@ -27,14 +27,14 @@ class SingerInfo:
     singer_image: str
     singer_profile: str
     singer_url: str
-    singer_songs: list[str]
+    singer_songs: list[tuple[str, str]]
 
     def to_json(self) -> str:
         data = dataclasses.asdict(self)
         return json.dumps(data, ensure_ascii=False, indent=4)
 
     def save(self):
-        with open(f"singer_info_id={self.singer_id}.json", "w") as f:
+        with open(f"Data/Singer/singer_info_id={self.singer_id}.json", "w") as f:
             print(self.to_json(), file=f)
 
 class MusicCrawler:
@@ -49,7 +49,7 @@ class MusicCrawler:
         song_lyric = self.get_song_lyric(song_id)
         song_url = self.get_song_url(song_id)
         song_comments = self.get_song_comments(song_id)
-        self.detail_cache.pop(song_id)
+        self.song_detail_cache.pop(song_id)
         return SongInfo(song_id=song_id, song_name=song_name, song_singer=song_singer, song_cover=song_cover ,song_lyric=song_lyric, song_url=song_url, song_comments=song_comments)
     
     def get_singer_info(self, singer_id:str) -> SingerInfo:
@@ -58,7 +58,7 @@ class MusicCrawler:
         singer_profile = self.get_singer_profile(singer_id)
         singer_url = self.get_singer_url(singer_id)
         singer_songs = self.get_singer_songs(singer_id)
-        
+        self.singer_page_cache.pop(singer_id)
         return SingerInfo(singer_id=singer_id, singer_name=singer_name, singer_image=singer_image, singer_profile=singer_profile, singer_url=singer_url, singer_songs=singer_songs)
 
     def get_song_name(self, song_id:str) -> str:
