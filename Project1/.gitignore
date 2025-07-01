@@ -6,3 +6,4 @@ __pycacge__/
 temp.*
 test.*
 db.sqlite3*
+db.sqlite3
