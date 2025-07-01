@@ -2,43 +2,33 @@ import os
 import json
 import random
 from django.conf import settings
-from django.shortcuts import render, redirect
+from django.shortcuts import render, get_object_or_404
 from django.http import Http404, HttpRequest
-from datetime import datetime
+from django.core.paginator import Paginator
+from data.views import get_singer_list_random, get_song_list_same
+from data.models import Singer
 
 def singer_page(request:HttpRequest, singer_id:str):
-    json_path = os.path.join(settings.BASE_DIR, "../crawler/Data/Singer", f"singer_info_id={singer_id}.json")
-
-    if not os.path.exists(json_path):
-        raise Http404(json_path)
-
-    with open(json_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
+    singer = get_object_or_404(Singer, singer_id=singer_id)
     
-    song_list = random.sample(data["singer_songs"], k=min(3, len(data["singer_songs"])))
-    for i in range(len(song_list)):
-        json_path = os.path.join(settings.BASE_DIR, "../crawler/Data/Song", f"song_info_id={song_list[i][0]}.json")
-        
-        temp_dict = {}
-        if os.path.exists(json_path):
-            with open(json_path, "r+", encoding="utf-8") as f:
-                temp_dict = json.load(f)
-        else:
-            temp_dict = {
-                "song_id": song_list[i][0],
-                "song_name": song_list[i][1],
-                "song_cover": "https://via.placeholder.com/60/FFC0CB/000000?Text=封面"
-            }
-        
-        song_list[i] = temp_dict
+    # 1. 下方分页显示歌曲
+    song_list = singer.songs.all()
+    paginator = Paginator(song_list, 10)
+    song_list_page = paginator.get_page(request.GET.get('page'))
     
-    from navigation.views import get_singer_list
-    singer_list = get_singer_list(num=2)
+    # 2. 右侧随机推荐歌曲
+    # song_list_random = random.sample(song_list, k=min(3, len(singer["singer_songs"])))
+    # get_song_info_from_id(song_list=song_list_random)
+    song_list_same = get_song_list_same(singer.singer_id, num=3)
+
+    # 3. 右侧随机推荐歌手
+    singer_list_random = get_singer_list_random(num=2)
 
     context = {
-        "singer": data,
-        "song_list": song_list,
-        "singer_list": singer_list,
+        "singer": singer,
+        "song_list_page": song_list_page,
+        "song_list_same": song_list_same,
+        "singer_list_random": singer_list_random,
     }
     
     return render(request, "singer_page/singer_page.html", context)

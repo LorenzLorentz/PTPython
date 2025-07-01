@@ -544,3 +544,414 @@ h2 .fas {
 .simple-song-list li a:hover {
     color: #e53935;
 }
+/* --- 在 style.css 中追加以下样式 --- */
+
+/* --- 所有歌曲页面样式 --- */
+
+/* 页面主标题 */
+.page-header {
+    text-align: center;
+    margin: 40px 0;
+}
+.page-header h1 {
+    font-size: 36px;
+    color: #333;
+    font-weight: 700;
+}
+.page-header h1 .fas {
+    margin-right: 15px;
+    color: #e53935;
+}
+
+/* 歌曲列表容器 */
+.song-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* 横条之间的间距 */
+    margin-bottom: 40px;
+}
+
+/* 包裹歌曲横条的链接 */
+.song-row-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    border-radius: 8px; /* 让阴影和背景效果贴合圆角 */
+    transition: all 0.3s ease-out;
+}
+
+/* 悬浮效果 */
+.song-row-link:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+.song-row-link:hover .song-row {
+    background-color: #f0f0f0; /* 悬浮时背景变深 */
+}
+
+/* 歌曲横条本身 */
+.song-row {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    background-color: #f9f9f9; /* 浅灰色背景 */
+    border-radius: 8px;
+    border: 1px solid #eee;
+    transition: background-color 0.3s ease-out;
+    width: 100%;
+}
+
+/* 横条内部元素 */
+.song-row-cover {
+    width: 50px;
+    height: 50px;
+    border-radius: 6px;
+    margin-right: 20px;
+    flex-shrink: 0; /* 防止图片被压缩 */
+}
+
+.song-row-title {
+    flex: 3; /* 占据最多空间 */
+    font-size: 18px;
+    font-weight: 600;
+    white-space: nowrap; /* 防止换行 */
+    overflow: hidden; /* 超出部分隐藏 */
+    text-overflow: ellipsis; /* 显示省略号 */
+    margin-right: 20px;
+}
+
+.song-row-artist,
+.song-row-album {
+    flex: 2; /* 占据同等空间 */
+    font-size: 16px;
+    color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: 20px;
+}
+
+.song-row-album {
+    text-align: left; /* 或根据喜好调整 */
+    margin-right: 0;
+}
+
+/* --- 在 style.css 中追加以下样式 --- */
+
+/* --- 所有歌手页面样式 --- */
+
+/* 歌手网格容器 */
+.artist-grid-container {
+    display: grid;
+    /* 核心：默认4列布局 */
+    grid-template-columns: repeat(4, 1fr);
+    gap: 25px; /* 网格间距 */
+    margin-bottom: 40px;
+}
+
+/* 包裹卡片的链接 */
+.artist-grid-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    border-radius: 12px; /* 确保悬浮效果的阴影也带圆角 */
+    transition: all 0.3s ease-out;
+}
+
+/* 悬浮效果 */
+.artist-grid-link:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+.artist-grid-link:hover .artist-grid-card {
+    background-color: #ffffff; /* 悬浮时背景变白，突出显示 */
+    border-color: #ddd;
+}
+
+/* 歌手卡片本身 */
+.artist-grid-card {
+    background-color: #f9f9f9; /* 浅灰色背景 */
+    border-radius: 12px; /* 圆角方形 */
+    padding: 25px 20px;
+    text-align: center; /* 内容居中 */
+    border: 1px solid #f0f0f0;
+    height: 100%;
+    transition: all 0.3s ease-out;
+}
+
+/* 卡片内部元素 */
+.artist-grid-photo {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%; /* 圆形头像 */
+    object-fit: cover; /* 防止图片拉伸变形 */
+    margin: 0 auto 20px auto; /* 头像居中，并与名字拉开距离 */
+    border: 3px solid #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.artist-grid-name {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+
+/* --- 响应式设计：让网格在不同屏幕尺寸下表现更佳 --- */
+
+/* 1. 中等屏幕 (如平板) - 每行3个 */
+@media (max-width: 992px) {
+    .artist-grid-container {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* 2. 小屏幕 (如横屏手机) - 每行2个 */
+@media (max-width: 768px) {
+    .artist-grid-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+    .page-header h1 { /* 标题小一点 */
+        font-size: 30px;
+    }
+}
+
+/* 3. 超小屏幕 (如竖屏手机) - 每行2个（或改为1个） */
+@media (max-width: 576px) {
+    /* 如果希望在最小的屏幕上每行只显示1个，可以取消下面的注释 */
+    /*
+    .artist-grid-container {
+        grid-template-columns: repeat(1, 1fr);
+    }
+    */
+}
+
+/* --- 在 style.css 中追加以下样式 --- */
+
+/* --- 新的交互式搜索框样式 --- */
+
+/* 1. 整体容器 */
+.search-container-interactive {
+    position: relative; /* 为下拉菜单的绝对定位提供基准 */
+    width: 280px;
+}
+
+/* 2. 搜索框本身 (包含指示器和输入框) */
+.search-box-interactive {
+    display: flex;
+    align-items: center;
+    background-color: white;
+    border-radius: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 1px solid transparent; /* 用于聚焦时显示边框 */
+    transition: border-color 0.3s ease;
+}
+/* 聚焦时给整个框加一个高亮边框 */
+.search-box-interactive.focused {
+    border-color: #f5c7c6;
+}
+
+/* 3. 左侧的指示器/提交按钮 */
+.search-submit-button {
+    background-color: #f0f0f0; /* 灰色背景 */
+    border: none;
+    padding: 0 15px;
+    height: 38px; /* 与输入框等高 */
+    border-top-left-radius: 20px;
+    border-bottom-left-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    color: #e53935; /* 主题红色 */
+    transition: background-color 0.3s ease;
+}
+.search-submit-button:hover {
+    background-color: #e0e0e0;
+}
+.search-indicator-text {
+    display: inline-block;
+    width: 40px; /* 给 "Singer" 这样的词足够空间 */
+    text-align: center;
+}
+
+/* 4. 中间的输入框 */
+.search-input-interactive {
+    border: none;
+    outline: none;
+    background: none;
+    padding: 8px 15px 8px 10px;
+    width: 100%;
+    font-size: 14px;
+    color: #333;
+}
+
+/* 5. 下拉菜单 */
+.search-dropdown {
+    position: absolute;
+    top: 110%; /* 位于搜索框正下方，留一点空隙 */
+    width: 100%;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    z-index: 1000;
+    overflow: hidden;
+    
+    /* 动画效果相关 */
+    visibility: hidden; /* 默认不可见 */
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s 0.2s;
+}
+/* 当下拉菜单激活时 */
+.search-dropdown.active {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 0s;
+}
+
+.dropdown-menu {
+    list-style: none;
+    margin: 0;
+    padding: 8px 0;
+}
+.dropdown-item, .dropdown-item-link a {
+    display: block;
+    padding: 12px 20px;
+    cursor: pointer;
+    color: #333;
+    font-size: 14px;
+    transition: background-color 0.2s ease;
+    text-decoration: none;
+}
+.dropdown-item .fas, .dropdown-item-link .fas {
+    margin-right: 12px;
+    color: #888;
+    width: 20px; /* 让图标对齐 */
+    text-align: center;
+}
+.dropdown-item:hover, .dropdown-item-link a:hover {
+    background-color: #f5f5f5;
+}
+
+.dropdown-separator {
+    height: 1px;
+    background-color: #f0f0f0;
+    margin: 8px 0;
+}
+
+/* --- 在 style.css 中追加以下样式 --- */
+
+/* 1. 播放器容器样式 */
+.audio-player-container {
+    background-color: #f9f9f9; /* 浅灰色背景，与页面协调 */
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 40px; /* 与下方的歌词区域拉开距离 */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border: 1px solid #f0f0f0;
+}
+
+/* 让原生播放器宽度100%，撑满我们漂亮的容器 */
+.audio-player-container audio {
+    width: 100%;
+}
+
+/* --- 在 style.css 中追加以下样式 --- */
+
+/* 2. 评论表单样式 */
+.comment-form {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 30px;
+    margin-top: 40px; /* 与上方的评论区拉开距离 */
+    border: 1px solid #e0e0e0;
+}
+
+.comment-form h3 {
+    margin-top: 0;
+    margin-bottom: 25px;
+    font-size: 22px;
+    color: #333;
+    text-align: center;
+}
+
+.comment-form form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* 替代原始的 <br> 标签，提供均匀的间距 */
+}
+
+/* 统一的输入框和文本域样式 */
+.comment-form input[type="text"],
+.comment-form textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    font-family: inherit; /* 继承body的字体，保持统一 */
+    transition: border-color 0.3s, box-shadow 0.3s;
+    box-sizing: border-box; /* 关键属性，确保padding不会撑大宽度 */
+}
+
+.comment-form textarea {
+    resize: vertical; /* 只允许用户垂直调整大小 */
+    min-height: 100px;
+}
+
+/* 输入框获得焦点时的交互效果 */
+.comment-form input[type="text"]:focus,
+.comment-form textarea:focus {
+    outline: none;
+    border-color: #e53935; /* 边框变为主题红色 */
+    box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.15); /* 外发光效果 */
+}
+
+/* 提交按钮样式 */
+.comment-form button[type="submit"] {
+    background-color: #e53935; /* 主题红色 */
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    align-self: flex-end; /* 让按钮靠右对齐 */
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.comment-form button[type="submit"]:hover {
+    background-color: #c62828; /* 鼠标悬停时颜色加深 */
+    transform: translateY(-2px);
+}
+
+/* 定位评论体，为删除按钮的绝对定位做准备 */
+.comment-body {
+    position: relative; /* 关键属性！*/
+}
+
+/* 删除按钮的表单样式 */
+.comment-delete-form {
+    position: absolute; /* 相对于 .comment-body 定位 */
+    top: 0;
+    right: 0;
+}
+
+/* 删除按钮本身样式 */
+.comment-delete-btn {
+    background: none;
+    border: none;
+    color: #999; /* 灰色，不显眼 */
+    font-size: 12px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+    transition: color 0.3s, background-color 0.3s;
+}
+
+.comment-delete-btn:hover {
+    color: #e53935; /* 鼠标悬停时变为红色 */
+    background-color: #fce8e6; /* 淡淡的红色背景 */
+}

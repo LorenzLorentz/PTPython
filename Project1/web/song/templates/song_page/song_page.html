@@ -5,9 +5,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>歌曲详情 - {{song.song_name}}</title>
+    <title>歌曲详情 - {{song.name}}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchForm = document.getElementById('interactive-search-form');
+    if (searchForm) {
+        const searchInput = document.getElementById('search-input');
+        const searchDropdown = document.getElementById('search-dropdown');
+        const searchBox = searchInput.parentElement;
+        const searchIndicator = document.getElementById('search-indicator');
+        const searchTypeInput = document.getElementById('search-type');
+
+        // 1. 点击输入框时，显示/隐藏下拉菜单
+        searchInput.addEventListener('focus', function() {
+            searchDropdown.classList.add('active');
+            searchBox.classList.add('focused');
+        });
+
+        // 2. 点击页面其他地方时，隐藏下拉菜单
+        document.addEventListener('click', function(event) {
+            if (!searchForm.contains(event.target)) {
+                searchDropdown.classList.remove('active');
+                searchBox.classList.remove('focused');
+            }
+        });
+
+        // 3. 点击下拉菜单中的选项
+        searchDropdown.addEventListener('click', function(event) {
+            const item = event.target.closest('.dropdown-item');
+            if (item) {
+                const type = item.getAttribute('data-type');
+                const typeText = type.charAt(0).toUpperCase() + type.slice(1); // 'song' -> 'Song'
+                
+                // 更新隐藏输入框的值
+                searchTypeInput.value = type;
+                
+                // 更新左侧指示器的文本
+                searchIndicator.innerHTML = typeText;
+                
+                // 收起下拉菜单并让输入框重新获得焦点
+                searchDropdown.classList.remove('active');
+                searchInput.focus();
+            }
+        });
+    }
+});
+</script>
 
 <body>
 
@@ -15,16 +62,38 @@
         <div class="container">
             <a href="/" class="navbar-brand"><i class="fas fa-music"></i> MyMusic</a>
             <ul class="navbar-links">
-                <li><a href="/songs">所有歌曲</a></li>
-                <li><a href="/artists">所有歌手</a></li>
+                <li><a href="/all_songs">所有歌曲</a></li>
+                <li><a href="/all_singers">所有歌手</a></li>
             </ul>
-            <div class="search-container">
-                <form action="/search" method="get" class="search-form">
-                    <div class="search-box">
-                        <input type="text" name="q" placeholder="搜索歌曲、歌手...">
-                        <button type="submit" class="search-submit-btn"><i class="fas fa-search"></i></button>
+            
+            <div class="search-container-interactive">
+                <form action="/search" method="get" id="interactive-search-form">
+                    <input type="hidden" name="type" id="search-type" value="all">
+            
+                    <div class="search-box-interactive">
+                        <button type="submit" class="search-submit-button" id="search-submit-btn">
+                            <span class="search-indicator-text" id="search-indicator">
+                                <i class="fas fa-search"></i> </span>
+                        </button>
+                        
+                        <input type="text" name="q" class="search-input-interactive" id="search-input" placeholder="搜索..." autocomplete="off">
                     </div>
-                    <a href="/advanced-search" class="advanced-search-link">高级搜索</a>
+            
+                    <div class="search-dropdown" id="search-dropdown">
+                        <ul class="dropdown-menu">
+                            <li class="dropdown-item" data-type="song">
+                                <i class="fas fa-music"></i> 搜索歌曲
+                            </li>
+                            <li class="dropdown-item" data-type="singer">
+                                <i class="fas fa-user"></i> 搜索歌手
+                            </li>
+                            <li class="dropdown-item-link">
+                                <a href="/advanced-search">
+                                    <i class="fas fa-search-plus"></i> 高级搜索
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </form>
             </div>
         </div>
@@ -32,50 +101,111 @@
 
     <div class="breadcrumb">
         <div class="container">
-            <a href="/">首页</a> &gt; <a href="/songs">所有歌曲</a> &gt; <span>歌曲详情</span>
+            <a href="/">首页</a> &gt; <a href="/all_songs">所有歌曲</a> &gt; <span>歌曲详情</span>
         </div>
     </div>
 
     <main class="main-content container">
         <div class="song-main-content">
             <header class="song-header">
-                <img src="{{song.song_cover}}" alt="专辑封面" class="album-cover">
+                <img src="{{song.cover}}" alt="专辑封面" class="album-cover">
                 <div class="song-info">
-                    <h1 class="song-title-large"><a href="{{song.song_url}}">{{song.song_name}}</a></h1>
+                    <h1 class="song-title-large"><a href="{{song.url}}">{{song.name}}</a></h1>
                     <p class="song-meta">
-                        歌手：<a href="{% url 'singer_page' singer_id=song.song_singer.0 %}">{{song.song_singer.1}}</a><br>
-                        专辑：<a>{{song.song_album}}</a>
+                        歌手：<a href="{% url 'singer_page' singer_id=song.singer.singer_id %}">{{song.singer.name}}</a><br>
+                        专辑：<a>{{song.album}}</a>
                     </p>
                 </div>
             </header>
 
+            <div class="audio-player-container">
+                <audio controls>
+                    <source src="{{ song.song_audio.url }}" type="audio/mpeg">
+                    你的浏览器不支持 audio 标签.
+                </audio>
+            </div>
+
             <section class="lyrics-section">
                 <h2>歌词</h2>
                 <div id="lyrics-content" class="lyrics-content collapsed">
-                    <p>{{song.song_lyric|linebreaksbr }}</p>
+                    <p>{{song.lyric|linebreaksbr }}</p>
                 </div>
                 <button id="lyrics-toggle-btn" class="toggle-button">展开</button>
             </section>
 
             <section class="comments-section">
-                <h2>评论 (5)</h2>
+                <h2>评论</h2>
                 <div class="comment-list">
-                    {% for comment in song.song_comments %}
+                    {% for comment in comment_list_page %}
                         <div class="comment-item">
                             <img src="{{comment.image}}" alt="用户头像" class="comment-avatar">
                             <div class="comment-body">
                                 <strong class="comment-user">{{comment.nickname}}</strong>
                                 <span class="comment-time">{{comment.time}}</span>
                                 <p class="comment-text">{{comment.content}}</p>
+
+                                <form action="{% url 'delete_comment' song_id=song.song_id comment_id=comment.id %}" method="POST" class="comment-delete-form">
+                                    {% csrf_token %}
+                                    <button type="submit" class="comment-delete-btn" onclick="return confirm('你确定要删除这条评论吗？');">
+                                        删除
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     {% empty %}
                         <p>还没有评论，快来抢沙发！</p>
                     {% endfor %}
-                <nav class="pagination-simple">
-                    <a href="?page=1" class="page-btn-simple disabled"><i class="fas fa-chevron-left"></i> 上一页</a>
-                    <a href="?page=3" class="page-btn-simple">下一页 <i class="fas fa-chevron-right"></i></a>
-                </nav>
+                
+                    {% if comment_list_page.has_other_pages %}
+                    <nav class="pagination" aria-label="歌曲分页">
+                        {% if comment_list_page.has_previous %}
+                            <a href="?page=1" class="page-btn">首页</a>
+                        {% else %}
+                            <span class="page-btn disabled">首页</span>
+                        {% endif %}
+    
+                        {% if comment_list_page.has_previous %}
+                            <a href="?page={{ comment_list_page.previous_page_number }}" class="page-btn">&laquo;</a>
+                        {% endif %}
+    
+                        {% for i in comment_list_page.paginator.page_range %}
+                            {% if comment_list_page.number == i %}
+                                <span class="page-item active">{{ i }}</span>
+                            {% elif i > comment_list_page.number|add:'-3' and i < comment_list_page.number|add:'3' %}
+                                <a href="?page={{ i }}" class="page-item">{{ i }}</a>
+                            {% elif i == comment_list_page.paginator.page_range.0 or i == comment_list_page.paginator.page_range|last %}
+                                <a href="?page={{ i }}" class="page-item">{{ i }}</a>
+                            {% elif i == comment_list_page.number|add:'-4' or i == comment_list_page.number|add:'4' %}
+                                <span class="page-item ellipsis">...</span>
+                            {% endif %}
+                        {% endfor %}
+    
+                        {% if comment_list_page.has_next %}
+                            <a href="?page={{ comment_list_page.next_page_number }}" class="page-btn">&raquo;</a>
+                        {% endif %}
+    
+                        {% if comment_list_page.has_next %}
+                            <a href="?page={{ comment_list_page.paginator.num_pages }}" class="page-btn">尾页</a>
+                        {% else %}
+                            <span class="page-btn disabled">尾页</span>
+                        {% endif %}
+    
+                        <form action="" method="get" class="page-jump-form">
+                            <input type="number" name="page" min="1" max="{{ comment_list_page.paginator.num_pages }}" class="page-input" placeholder="页码">
+                            <button type="submit" class="page-btn">跳转</button>
+                        </form>
+                    </nav>
+                    {% endif %}
+
+                    <div class="comment-form">
+                        <h3>发表你的评论</h3>
+                        <form method="POST" action="{% url 'add_comment' song_id=song.song_id %}">
+                            {% csrf_token %}
+                            <input type="text" name="nickname" placeholder="你的昵称" required>
+                            <textarea name="content" rows="4" placeholder="写下你的评论..." required></textarea>
+                            <button type="submit">提交评论</button>
+                        </form>
+                    </div>
             </section>
         </div>
 
@@ -85,8 +215,8 @@
                 <ul class="simple-song-list">
                     {% for song in song_list_same %}
                         <a href="{% url 'song_page' song_id=song.song_id %}" class="top-work-card">
-                            <img src="{{song.song_cover}}" alt="歌曲封面">
-                            <span>{{song.song_name}}</span>
+                            <img src="{{song.cover}}" alt="歌曲封面">
+                            <span>{{song.name}}</span>
                         </a>
                     {% empty %}
                         <li>暂无歌曲</li>
@@ -98,8 +228,8 @@
                 <div class="top-works-list">
                     {% for song in song_list_random %}
                         <a href="{% url 'song_page' song_id=song.song_id %}" class="top-work-card">
-                            <img src="{{song.song_cover}}" alt="歌曲封面">
-                            <span>{{song.song_name}}</span>
+                            <img src="{{song.cover}}" alt="歌曲封面">
+                            <span>{{song.name}}</span>
                         </a>
                     {% empty %}
                         <li>暂无歌曲</li>

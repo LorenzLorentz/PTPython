@@ -5,3 +5,4 @@ __pycacge__/
 *.json
 temp.*
 test.*
+db.sqlite3*

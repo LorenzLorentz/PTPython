@@ -1,86 +1,54 @@
 import os
 import json
 from django.conf import settings
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import Http404, HttpRequest
+from django.core.paginator import Paginator
 from datetime import datetime
 import random
+from data.views import get_song_list_random, get_song_list_same
+from data.models import Song, Comment
+from django.views.decorators.http import require_POST
 
-def get_song_list_same(singer_id:str, num:int):
-    song_list_same = []
-    
-    json_path_singer = os.path.join(settings.BASE_DIR, "../crawler/Data/Singer", "singer_info_id={}.json".format(singer_id))
-    if os.path.exists(json_path_singer):
-        with open(json_path_singer, "r", encoding="utf-8") as f:
-            singer = json.load(f)
-        
-        song_list_same = random.sample(singer["singer_songs"], k=min(num, len(singer["singer_songs"])))
-        
-        for i in range(len(song_list_same)):
-            original_song_item = song_list_same[i]
-            song_id = original_song_item[0]
-            song_name = original_song_item[1]
+@require_POST
+def delete_comment(request:HttpRequest, song_id, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    comment.delete()
+    return redirect('song_page', song_id=song_id)
 
-            json_path = os.path.join(settings.BASE_DIR, "../crawler/Data/Song", f"song_info_id={song_id}.json")
+@require_POST
+def add_comment(request:HttpRequest, song_id):
+    nickname = request.POST.get("nickname", default="Anonymous")
+    image = request.POST.get("image")
+    content = request.POST.get("content")
 
-            song_detail_dict = {}
+    if content:
+        Comment.objects.create(
+            nickname=nickname,
+            content=content,
+            image=image,
+            song=get_object_or_404(Song, song_id=song_id),
+        )
 
-            if os.path.exists(json_path):
-                with open(json_path, "r", encoding="utf-8") as f:
-                    song_detail_dict = json.load(f)
-            else:
-                song_detail_dict = {
-                    "song_id": song_id,
-                    "song_name": song_name,
-                    "song_cover": "https://via.placeholder.com/60/FFC0CB/000000?Text=封面"
-                }
-            
-            song_list_same[i] = song_detail_dict
-
-    return song_list_same
+    return redirect("song_page", song_id=song_id)
 
 def song_page(request:HttpRequest, song_id:str):
-    json_path = os.path.join(settings.BASE_DIR, "../crawler/Data/Song", f"song_info_id={song_id}.json")
+    song = get_object_or_404(Song, song_id=song_id)
 
-    if not os.path.exists(json_path):
-        raise Http404(json_path)
+    # 1. 下方分页显示评论
+    comment_list = song.comments.all()
+    paginator = Paginator(comment_list, 10)
+    comment_list_page = paginator.get_page(request.GET.get('page'))
 
-    if request.method == 'POST':
-        nickname = request.POST.get("nickname", default="Anonymous")
-        image = request.POST.get("image")
-        content = request.POST.get("content")
-
-        if content:
-            new_comment = {
-                "nickname": nickname,
-                "image": image,
-                "content": content,
-                "time": datetime.now().strftime("%Y-%m-%d"),
-                "image": "https://via.placeholder.com/50/4CAF50/FFFFFF?Text=U",
-            }
-
-            with open(json_path, "r+", encoding="utf-8") as f:
-                data = json.load(f)
-                comments = json.loads(data["song_comments"])
-                data["song_comments"] = comments
-                comments.append(new_comment)
-                f.seek(0)
-                json.dump(data, f, ensure_ascii=False, indent=2)
-                f.truncate()
-
-            return redirect("song_page", song_id=song_id)
-
-    with open(json_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-        if isinstance(data["song_comments"], str):
-            data["song_comments"] = json.loads(data["song_comments"])
-
-    song_list_same = get_song_list_same(singer_id=data["song_singer"][0], num=3)
-    from navigation.views import get_song_list
-    song_list_random = get_song_list(num=2)
+    # 2. 右侧同一歌手的随机推荐歌曲
+    song_list_same = get_song_list_same(singer_id=song.singer.singer_id,song_id=song.song_id, num=3)
+    
+    # 3. 右侧随机推荐歌曲
+    song_list_random = get_song_list_random(num=2)
 
     context = {
-        "song": data,
+        "song": song,
+        "comment_list_page": comment_list_page,
         "song_list_same": song_list_same,
         "song_list_random": song_list_random
     }

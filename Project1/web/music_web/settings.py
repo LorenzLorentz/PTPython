@@ -24,6 +24,8 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
@@ -48,7 +50,10 @@ INSTALLED_APPS = [
     'song',
     'navigation',
     'singer',
-    # 'search',
+    'all_songs',
+    'all_singers',
+    'search',
+    'data'
 ]
 
 MIDDLEWARE = [

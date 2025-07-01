@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>音乐首页</title>
+    <title>搜索结果: {{query}}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
@@ -60,10 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     <nav class="navbar">
         <div class="container">
-            <a href="/" class="navbar-brand">
-                <i class="fas fa-music"></i> MyMusic
-            </a>
-            
+            <a href="/" class="navbar-brand"><i class="fas fa-music"></i> MyMusic</a>
             <ul class="navbar-links">
                 <li><a href="/all_songs">所有歌曲</a></li>
                 <li><a href="/all_singers">所有歌手</a></li>
@@ -102,45 +99,68 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </nav>
 
-    <main class="main-content container">
-        <section class="recommended-songs">
-            <h2><i class="fas fa-random"></i> 推荐歌曲</h2>
-            <div class="song-grid">
-                {% for song in song_list %}
-                    <div class="song-card">
-                        <a href="{% url 'song_page' song_id=song.song_id %}">
-                            <img src="{{song.cover}}" alt="专辑封面">
-                            <h3 class="song-title">{{song.name}}</h3>
-                        </a>
-                        <p class="song-artist"><a href="{% url 'singer_page' singer_id=song.singer.id %}">{{song.singer.name}}</a></p>
-                    </div>
-                {% empty %}
-                    <li>暂无音乐</li>
-                {% endfor %}
-            </div>
-        </section>
+    <div class="breadcrumb">
+        <div class="container">
+            <a href="/">首页</a> &gt; <span>所有歌手</span>
+        </div>
+    </div>
 
-        <aside class="recommended-artists">
-            <h2><i class="fas fa-user-friends"></i> 推荐歌手</h2>
-            <div class="artist-list">
-                {% for singer in singer_list %}
-                    <div class="artist-card">
-                        <a href="{% url 'singer_page' singer_id=singer.singer_id %}">
-                            <img src="{{singer.image}}" alt="歌手头像">
-                            <span class="artist-name">{{singer.name}}</span>
-                        </a>
+    <main class="container">
+        <header class="page-header">
+            <h1><i class="fas fa-user-friends"></i> 搜索结果: {{query}}</h1><h3>(结果数目: {{num}}, 用时: {{time}})</h3>
+        </header>
+
+        <div class="artist-grid-container">
+            {% for singer in singer_list_page %}
+                <a href="{% url 'singer_page' singer_id=singer.singer_id %}" class="artist-grid-link">
+                    <div class="artist-grid-card">
+                        <img src="{{ singer.image }}" alt="{{ singer.name }}" class="artist-grid-photo">
+                        <h3 class="artist-grid-name">{{ singer.name }}</h3>
                     </div>
-                {% empty %}
-                    <li>暂无歌手</li>
-                {% endfor %}
-            </div>
-        </aside>
+                </a>
+            {% empty %}
+                <p class="empty-message" style="text-align:center; padding: 20px; grid-column: 1 / -1;">暂无歌手信息</p>
+            {% endfor %}
+        </div>
+
+        {% if singer_list_page.has_other_pages %}
+        <nav class="pagination" aria-label="歌曲分页">
+            
+            {% if singer_list_page.has_previous %}
+                <a href="?page=1" class="page-btn">首页</a>
+                <a href="?page={{ singer_list_page.previous_page_number }}" class="page-btn">&laquo;</a>
+            {% else %}
+                <span class="page-btn disabled">首页</span>
+                <span class="page-btn disabled">&laquo;</span>
+            {% endif %}
+
+            {% for i in singer_list_page.paginator.page_range %}
+                {% if singer_list_page.number == i %}
+                    <span class="page-item active">{{ i }}</span>
+                {% elif i > singer_list_page.number|add:'-3' and i < singer_list_page.number|add:'3' %}
+                    <a href="?page={{ i }}" class="page-item">{{ i }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if singer_list_page.has_next %}
+                <a href="?page={{ singer_list_page.next_page_number }}" class="page-btn">&raquo;</a>
+                <a href="?page={{ singer_list_page.paginator.num_pages }}" class="page-btn">尾页</a>
+            {% else %}
+                <span class="page-btn disabled">&raquo;</span>
+                <span class="page-btn disabled">尾页</span>
+            {% endif %}
+
+            <form action="" method="get" class="page-jump-form">
+                <input type="number" name="page" min="1" max="{{ singer_list_page.paginator.num_pages }}" class="page-input" placeholder="页码">
+                <button type="submit" class="page-btn">跳转</button>
+            </form>
+        </nav>
+        {% endif %}
+
     </main>
 
     <footer class="footer">
-        <div class="container">
-            <p>&copy; 2024 MyMusic. 保留所有权利。</p>
-        </div>
+        <div class="container"><p>&copy; 2024 MyMusic. 保留所有权利。</p></div>
     </footer>
 
 </body>
