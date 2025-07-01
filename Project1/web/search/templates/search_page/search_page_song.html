@@ -130,8 +130,8 @@ document.addEventListener('DOMContentLoaded', function() {
         <nav class="pagination" aria-label="歌曲分页">
             
             {% if song_list_page.has_previous %}
-                <a href="?page=1" class="page-btn">首页</a>
-                <a href="?page={{ song_list_page.previous_page_number }}" class="page-btn">&laquo;</a>
+                <a href="search?type=song&q={{query}}&page=1" class="page-btn">首页</a>
+                <a href="search?type=song&q={{query}}&page={{ song_list_page.previous_page_number }}" class="page-btn">&laquo;</a>
             {% else %}
                 <span class="page-btn disabled">首页</span>
                 <span class="page-btn disabled">&laquo;</span>
@@ -141,13 +141,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 {% if song_list_page.number == i %}
                     <span class="page-item active">{{ i }}</span>
                 {% elif i > song_list_page.number|add:'-3' and i < song_list_page.number|add:'3' %}
-                    <a href="?page={{ i }}" class="page-item">{{ i }}</a>
+                    <a href="search?type=song&q={{query}}&page={{ i }}" class="page-item">{{ i }}</a>
                 {% endif %}
             {% endfor %}
 
             {% if song_list_page.has_next %}
-                <a href="?page={{ song_list_page.next_page_number }}" class="page-btn">&raquo;</a>
-                <a href="?page={{ song_list_page.paginator.num_pages }}" class="page-btn">尾页</a>
+                <a href="search?type=song&q={{query}}&page={{ song_list_page.next_page_number }}" class="page-btn">&raquo;</a>
+                <a href="search?type=song&q={{query}}&page={{ song_list_page.paginator.num_pages }}" class="page-btn">尾页</a>
             {% else %}
                 <span class="page-btn disabled">&raquo;</span>
                 <span class="page-btn disabled">尾页</span>
