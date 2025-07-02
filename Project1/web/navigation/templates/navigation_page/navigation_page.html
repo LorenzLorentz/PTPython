@@ -1,107 +1,8 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="zh-CN">
+{% extends "base/base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>音乐首页</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-</head>
+{% block title %}音乐首页 - MyMusic{% endblock %}
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const searchForm = document.getElementById('interactive-search-form');
-    if (searchForm) {
-        const searchInput = document.getElementById('search-input');
-        const searchDropdown = document.getElementById('search-dropdown');
-        const searchBox = searchInput.parentElement;
-        const searchIndicator = document.getElementById('search-indicator');
-        const searchTypeInput = document.getElementById('search-type');
-
-        // 1. 点击输入框时，显示/隐藏下拉菜单
-        searchInput.addEventListener('focus', function() {
-            searchDropdown.classList.add('active');
-            searchBox.classList.add('focused');
-        });
-
-        // 2. 点击页面其他地方时，隐藏下拉菜单
-        document.addEventListener('click', function(event) {
-            if (!searchForm.contains(event.target)) {
-                searchDropdown.classList.remove('active');
-                searchBox.classList.remove('focused');
-            }
-        });
-
-        // 3. 点击下拉菜单中的选项
-        searchDropdown.addEventListener('click', function(event) {
-            const item = event.target.closest('.dropdown-item');
-            if (item) {
-                const type = item.getAttribute('data-type');
-                const typeText = type.charAt(0).toUpperCase() + type.slice(1); // 'song' -> 'Song'
-                
-                // 更新隐藏输入框的值
-                searchTypeInput.value = type;
-                
-                // 更新左侧指示器的文本
-                searchIndicator.innerHTML = typeText;
-                
-                // 收起下拉菜单并让输入框重新获得焦点
-                searchDropdown.classList.remove('active');
-                searchInput.focus();
-            }
-        });
-    }
-});
-</script>
-
-<body>
-
-    <nav class="navbar">
-        <div class="container">
-            <a href="/" class="navbar-brand">
-                <i class="fas fa-music"></i> MyMusic
-            </a>
-            
-            <ul class="navbar-links">
-                <li><a href="/all_songs">所有歌曲</a></li>
-                <li><a href="/all_singers">所有歌手</a></li>
-            </ul>
-            
-            <div class="search-container-interactive">
-                <form action="/search" method="get" id="interactive-search-form">
-                    <input type="hidden" name="type" id="search-type" value="all">
-            
-                    <div class="search-box-interactive">
-                        <button type="submit" class="search-submit-button" id="search-submit-btn">
-                            <span class="search-indicator-text" id="search-indicator">
-                                <i class="fas fa-search"></i> </span>
-                        </button>
-                        
-                        <input type="text" name="q" class="search-input-interactive" id="search-input" placeholder="搜索..." autocomplete="off">
-                    </div>
-            
-                    <div class="search-dropdown" id="search-dropdown">
-                        <ul class="dropdown-menu">
-                            <li class="dropdown-item" data-type="song">
-                                <i class="fas fa-music"></i> 搜索歌曲
-                            </li>
-                            <li class="dropdown-item" data-type="singer">
-                                <i class="fas fa-user"></i> 搜索歌手
-                            </li>
-                            <li class="dropdown-item-link">
-                                <a href="/advanced-search">
-                                    <i class="fas fa-search-plus"></i> 高级搜索
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </nav>
-
+{% block content %}
     <main class="main-content container">
         <section class="recommended-songs">
             <h2><i class="fas fa-random"></i> 推荐歌曲</h2>
@@ -136,12 +37,4 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         </aside>
     </main>
-
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2024 MyMusic. 保留所有权利。</p>
-        </div>
-    </footer>
-
-</body>
-</html>
+{% endblock %}

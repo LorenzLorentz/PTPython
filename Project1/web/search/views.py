@@ -27,7 +27,7 @@ def search_page(request:HttpRequest):
     else:
         raise NotImplementedError()
 
-    paginator = Paginator(results, 10)
+    paginator = Paginator(results, 12)
     page_obj = paginator.get_page(page_number)
     context[context_key] = page_obj
     context["num"] = len(results)

@@ -1,11 +1,8 @@
-import os
-import json
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import Http404, HttpRequest
 from django.core.paginator import Paginator
 from datetime import datetime
-import random
 from data.views import get_song_list_random, get_song_list_same
 from data.models import Song, Comment
 from django.views.decorators.http import require_POST
@@ -28,6 +25,7 @@ def add_comment(request:HttpRequest, song_id):
             content=content,
             image=image,
             song=get_object_or_404(Song, song_id=song_id),
+            time=datetime.now()
         )
 
     return redirect("song_page", song_id=song_id)
