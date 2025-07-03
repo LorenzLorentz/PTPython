@@ -1,4 +1,4 @@
-import base64
+import csv
 import requests
 import json
 import re
@@ -44,8 +44,14 @@ class NECCrawler(MusicCrawler):
         temp = self.get_song_detail(song_id=song_id)["songs"][0]["artists"][0]
         return str(temp["id"]), temp["name"]
 
+    def get_song_album(self, song_id:str) -> str:
+        return self.get_song_detail(song_id=song_id)["songs"][0]["album"]["name"]
+
     def get_song_cover(self, song_id:str) -> str:
         return self.get_song_detail(song_id=song_id)["songs"][0]["album"]["picUrl"]
+    
+    def get_song_outer(self, song_id:str) -> str:
+        return f"https://music.163.com/song/media/outer/url?id={song_id}.mp3"
 
     def get_song_lyric(self, song_id:str) -> str:
         url = f"{self.base_url}/weapi/song/lyric?csrf_token={self.csrf_token}"
@@ -70,10 +76,11 @@ class NECCrawler(MusicCrawler):
             "ordertype": "1",
             "pageNo": "1",
             "pageSize": "20",
-            "rid": "R_SO_4_212233",
-            "threadId": "R_SO_4_212233",
+            "rid": f"R_SO_4_{song_id}",
+            "threadId": f"R_SO_4_{song_id}",
 		}
-        raw_comments = self._get_song_data(url=url, payload=payload)["data"]["comments"]
+        raw_json = self._get_song_data(url=url, payload=payload)
+        raw_comments = raw_json["data"]["hotComments"] + raw_json["data"]["comments"]
         comments = [{
             "nickname": item["user"]["nickname"],
             "image": item["user"]["avatarUrl"],
@@ -122,3 +129,16 @@ class NECCrawler(MusicCrawler):
         pattern = r'<li><a href="/song\?id=(\d+)">(.*?)</a></li>'
         songs = re.findall(pattern, html_content)
         return songs
+    
+    def get_all_singers(self):
+        id_list = [1001, 1002, 1003]
+        ini_list = [0, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90]
+        for id in id_list:
+            for ini in ini_list:
+                url = f"http://music.163.com/discover/artist/cat?id={str(id)}&initial={str(ini)}"
+                res = requests.get(url=url, headers=self.headers).text
+                singers = re.findall(r'<a href=".*?/artist\?id=(\d+)" class="nm nm-icn f-thide s-fc0" title=".*?的音乐">(.*?)</a>', res, re.S)
+                for singer in singers:
+                    with open("Data/all_singers.csv", "a+", newline='', encoding='utf-8') as f:
+                        writer = csv.writer(f)
+                        writer.writerow((singer[0], singer[1]))

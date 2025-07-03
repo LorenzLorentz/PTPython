@@ -56,7 +56,9 @@ class Command(BaseCommand):
                         song_id = data.get("song_id"),
                         defaults = {
                             "name": data.get("song_name"),
+                            "album": data.get("song_album"),
                             "cover": data.get("song_cover"),
+                            "outer": data.get("song_outer"),
                             "lyric": data.get("song_lyric"),
                             "url": data.get("song_url"),
                             "singer": singer_obj

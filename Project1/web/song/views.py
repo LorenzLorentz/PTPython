@@ -48,7 +48,8 @@ def song_page(request:HttpRequest, song_id:str):
         "song": song,
         "comment_list_page": comment_list_page,
         "song_list_same": song_list_same,
-        "song_list_random": song_list_random
+        "song_list_random": song_list_random,
+        "outer_url": f"https://music.163.com/song/media/outer/url?id={song.song_id}.mp3",
     }
     
     return render(request, "song_page/song_page.html", context)

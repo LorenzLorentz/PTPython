@@ -17,7 +17,9 @@ class Singer(models.Model):
 class Song(models.Model):
     song_id = models.CharField(max_length=10, unique=True, verbose_name="song_id")
     name = models.CharField(max_length=200, verbose_name="song_name")
+    album = models.CharField(max_length=200, verbose_name="song_album")
     cover = models.URLField(max_length=255, verbose_name="song_cover")
+    outer = models.URLField(max_length=255, blank=True, null=True, verbose_name="song_outer")
     lyric = models.TextField(blank=True, null=True, verbose_name="song_lyric")
     url = models.URLField(max_length=255, blank=True, null=True, verbose_name="song_url")
 
