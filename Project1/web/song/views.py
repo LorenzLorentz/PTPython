@@ -34,7 +34,7 @@ def song_page(request:HttpRequest, song_id:str):
     song = get_object_or_404(Song, song_id=song_id)
 
     # 1. 下方分页显示评论
-    comment_list = song.comments.all()
+    comment_list = song.comments.order_by("-time")
     paginator = Paginator(comment_list, 10)
     comment_list_page = paginator.get_page(request.GET.get('page'))
 

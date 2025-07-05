@@ -4,12 +4,14 @@ import json
 import re
 from MusicCrawler import MusicCrawler
 from encrypt import encrypt
+from datetime import datetime
+import time
 
 class NECCrawler(MusicCrawler):
     def __init__(self, cookie:str):
         super().__init__()
         self.cookie = cookie
-        self.csrf_token = "53c86040ce0cea0d00f4e1220bd29fd5" # re.search(r'__csrf=(.*?);', cookie).group(1)
+        self.csrf_token = "fa67955b24eb7906ff4b806dbc92eb93" # re.search(r'__csrf=(.*?);', cookie).group(1)
         self.base_url = "https://music.163.com"
         self.headers = {
             "Cookie": cookie,
@@ -19,10 +21,29 @@ class NECCrawler(MusicCrawler):
         }
 
     def _get_song_data(self, url:str, payload:dict) -> json:
-        encrypted_data = encrypt(payload)
-        res = requests.post(url, data=encrypted_data, headers=self.headers)
+        # encrypted_data = encrypt(payload)
+        # res = requests.post(url, data=encrypted_data, headers=self.headers)
         # res.raise_for_status()
-        return res.json()
+        # return res.json()
+        max_retries = 3
+        delay_seconds = 1
+        encrypted_data = encrypt(payload)
+        for attempt in range(max_retries):
+            try:
+                time.sleep(delay_seconds)
+                res = requests.post(url, data=encrypted_data, headers=self.headers, timeout=10)
+                res.raise_for_status()
+                res = res.json()
+
+                if res["code"]==405:
+                    raise requests.exceptions.RequestException
+
+                return res
+            except (requests.exceptions.RequestException, json.JSONDecodeError) as e:
+                print(f"第 {attempt + 1} 次请求失败. 错误: {e}")
+                if attempt < max_retries - 1:
+                    time.sleep(delay_seconds)
+        raise ValueError("请求失败")
 
     def get_song_detail(self, song_id:str):
         if not song_id in self.song_detail_cache.keys():
@@ -38,7 +59,12 @@ class NECCrawler(MusicCrawler):
         return self.song_detail_cache[song_id]
 
     def get_song_name(self, song_id:str) -> str:
-        return self.get_song_detail(song_id=song_id)["songs"][0]["name"]
+        dic = self.get_song_detail(song_id=song_id)
+        if not isinstance(dic, dict):
+            raise ValueError(dic)
+        if "songs" not in dic.keys():
+            raise ValueError(dic)
+        return dic["songs"][0]["name"]
 
     def get_song_singer(self, song_id:str) -> tuple[str, str]:
         temp = self.get_song_detail(song_id=song_id)["songs"][0]["artists"][0]
@@ -90,6 +116,10 @@ class NECCrawler(MusicCrawler):
             "time": item["timeStr"]
         } for item in raw_comments]
         return json.dumps(comments, ensure_ascii=False)
+    
+    def get_song_time(self, song_id:str) -> int:
+        time = self.get_song_detail(song_id=song_id)["songs"][0]["album"]["publishTime"]
+        return datetime.fromtimestamp(time/1000).strftime('%Y-%m-%d')
 
     def _get_singer_data(self, singer_id:str) -> str:
         if not singer_id in self.singer_page_cache.keys():

@@ -3,7 +3,7 @@ import json
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from data.models import Singer, Song, Comment
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.utils import timezone
 from tqdm import tqdm
 
@@ -14,6 +14,30 @@ def split_name_and_alias(s:str):
 def parse_time(time:str, default_year=None):
     if not time or not isinstance(time, str):
         return None
+
+    time = time.strip()
+    now = timezone.now()
+
+    if time.startswith("昨天"):
+        try:
+            yesterday_date = (now - timedelta(days=1)).date()
+            time_str = time.replace("昨天", "").strip()
+            if time_str:
+                parsed_time = datetime.strptime(time_str, "%H:%M").time()
+            else:
+                parsed_time = datetime.min.time()
+            naive_dt = datetime.combine(yesterday_date, parsed_time)
+            return timezone.make_aware(naive_dt)
+        except ValueError:
+            pass
+
+    if time.endswith("天前"):
+        try:
+            num_str = time.replace("天前", "").strip()
+            to_sub = int(num_str)
+            return now-timedelta(days=to_sub)
+        except ValueError:
+            pass
 
     possible_formats = ['%Y-%m-%d', '%m-%d']
     

@@ -30,7 +30,7 @@
     </div>
 
     {% if song_list_page.has_other_pages %}
-        {% with prefix="type=song&q="|add:query %}
+        {% with prefix="type=song&q="|add:query|add:"&" %}
             {% include 'partials/_pagination.html' with page_obj=song_list_page prefix=prefix %}
         {% endwith %}
     {% endif %}

@@ -1,4 +1,4 @@
-<nav class="pagination" aria-label="歌曲分页">
+<nav class="pagination" aria-label="分页">
     {% if page_obj.has_previous %}
         <a href="?{{ prefix }}page=1" class="page-btn">首页</a>
         <a href="?{{ prefix }}page={{ page_obj.previous_page_number }}" class="page-btn">&laquo;</a>
@@ -23,8 +23,14 @@
         <span class="page-btn disabled">尾页</span>
     {% endif %}
 
+    <span class="page-btn disabled">共{{ page_obj.paginator.num_pages }}页</span>
     <form action="" method="get" class="page-jump-form">
-        <input type="number" name="page" min="1" max="{{ page_obj.paginator.num_pages }}" class="page-input" placeholder="页码">
+        {% for key, value in request.GET.items %}
+            {% if key != 'page' %}
+                <input type="hidden" name="{{ key }}" value="{{ value }}">
+            {% endif %}
+        {% endfor %}
+        <input type="number" name="page" min="1" max="{{ page_obj.paginator.num_pages }}" class="page-input" placeholder="页码" required step="1">
         <button type="submit" class="page-btn">跳转</button>
     </form>
 </nav>

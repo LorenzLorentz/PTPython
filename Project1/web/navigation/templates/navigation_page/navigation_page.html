@@ -13,7 +13,7 @@
                             <img src="{{song.cover}}" alt="专辑封面">
                             <h3 class="song-title">{{song.name}}</h3>
                         </a>
-                        <p class="song-artist"><a href="{% url 'singer_page' singer_id=song.singer.id %}">{{song.singer.name}}</a></p>
+                        <p class="song-artist"><a href="{% url 'singer_page' singer_id=song.singer.singer_id %}">{{song.singer.name}}</a></p>
                     </div>
                 {% empty %}
                     <li>暂无音乐</li>

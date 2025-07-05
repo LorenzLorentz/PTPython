@@ -13,6 +13,7 @@ class SongInfo:
     song_lyric: str
     song_url: str
     song_comments: list[dict]
+    song_time: str
 
     def to_json(self) -> str:
         data = dataclasses.asdict(self)
@@ -59,8 +60,9 @@ class MusicCrawler:
         song_lyric = self.get_song_lyric(song_id)
         song_url = self.get_song_url(song_id)
         song_comments = self.get_song_comments(song_id)
+        song_time = self.get_song_time(song_id)
         self.song_detail_cache.pop(song_id)
-        return SongInfo(song_id=song_id, song_name=song_name, song_singer=song_singer, song_album=song_album, song_cover=song_cover, song_outer=song_outer, song_lyric=song_lyric, song_url=song_url, song_comments=song_comments)
+        return SongInfo(song_id=song_id, song_name=song_name, song_singer=song_singer, song_album=song_album, song_cover=song_cover, song_outer=song_outer, song_lyric=song_lyric, song_url=song_url, song_comments=song_comments, song_time=song_time)
     
     def get_singer_info(self, singer_id:str) -> SingerInfo:
         singer_name = self.get_singer_name(singer_id)
@@ -93,6 +95,9 @@ class MusicCrawler:
         raise NotImplementedError()
 
     def get_song_comments(self, song_id:str) -> list[dict]:
+        raise NotImplementedError()
+    
+    def get_song_time(self, song_id:str) -> str:
         raise NotImplementedError()
 
     def get_singer_name(self, song_id:str) -> str:
