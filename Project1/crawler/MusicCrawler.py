@@ -19,10 +19,10 @@ class SongInfo:
         return json.dumps(data, ensure_ascii=False, indent=4)
 
     def save(self):
-        with open(f"_Data/Song/song_info_id={self.song_id}.json", "w") as f:
+        with open(f"Data/Song/song_info_id={self.song_id}.json", "w") as f:
             print(self.to_json(), file=f)
 
-        with open(f"_Data/Song/Image/{self.song_id}.jpg", "wb") as f:
+        with open(f"Data/Song/Image/{self.song_id}.jpg", "wb") as f:
             f.write(requests.get(url=self.song_cover).content)
 
 @dataclasses.dataclass
@@ -39,10 +39,10 @@ class SingerInfo:
         return json.dumps(data, ensure_ascii=False, indent=4)
 
     def save(self):
-        with open(f"_Data/Singer/singer_info_id={self.singer_id}.json", "w") as f:
+        with open(f"Data/Singer/singer_info_id={self.singer_id}.json", "w") as f:
             print(self.to_json(), file=f)
 
-        with open(f"_Data/Singer/Image/{self.singer_id}.jpg", "wb") as f:
+        with open(f"Data/Singer/Image/{self.singer_id}.jpg", "wb") as f:
             f.write(requests.get(url=self.singer_image).content)
 
 class MusicCrawler:

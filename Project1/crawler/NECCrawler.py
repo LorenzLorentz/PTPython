@@ -9,7 +9,7 @@ class NECCrawler(MusicCrawler):
     def __init__(self, cookie:str):
         super().__init__()
         self.cookie = cookie
-        self.csrf_token = re.search(r'__csrf=(.*?);', cookie).group(1)
+        self.csrf_token = "53c86040ce0cea0d00f4e1220bd29fd5" # re.search(r'__csrf=(.*?);', cookie).group(1)
         self.base_url = "https://music.163.com"
         self.headers = {
             "Cookie": cookie,
@@ -80,7 +80,9 @@ class NECCrawler(MusicCrawler):
             "threadId": f"R_SO_4_{song_id}",
 		}
         raw_json = self._get_song_data(url=url, payload=payload)
-        raw_comments = raw_json["data"]["hotComments"] + raw_json["data"]["comments"]
+        raw_comments = raw_json["data"]["comments"]
+        if raw_json["data"]["hotComments"]:
+            raw_comments = raw_json["data"]["hotComments"] + raw_comments
         comments = [{
             "nickname": item["user"]["nickname"],
             "image": item["user"]["avatarUrl"],

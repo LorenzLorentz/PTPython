@@ -3,6 +3,7 @@ from django.db import models
 class Singer(models.Model):
     singer_id = models.CharField(max_length=10, unique=True, verbose_name="singer_id")
     name = models.CharField(max_length=100, unique=True, verbose_name="singer_name")
+    alias = models.CharField(max_length=200, verbose_name="singer_alias", blank=True, null=True)
     profile = models.TextField(blank=True, null=True, verbose_name="singer_profile")
     image = models.URLField(max_length=255, blank=True, null=True, verbose_name="singer_image_url")
     url = models.URLField(max_length=255, blank=True, null=True, verbose_name="singer_url")

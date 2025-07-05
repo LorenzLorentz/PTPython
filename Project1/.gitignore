@@ -9,3 +9,8 @@ db.sqlite3*
 db.sqlite3
 temp/
 *.csv
+error/
+error*
+migrations/
+error.*
+000*
