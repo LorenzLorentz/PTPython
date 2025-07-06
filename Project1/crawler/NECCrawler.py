@@ -11,7 +11,7 @@ class NECCrawler(MusicCrawler):
     def __init__(self, cookie:str):
         super().__init__()
         self.cookie = cookie
-        self.csrf_token = "fa67955b24eb7906ff4b806dbc92eb93" # re.search(r'__csrf=(.*?);', cookie).group(1)
+        self.csrf_token = "1eb3e8f28868620a9c61408a773d2aea" # re.search(r'__csrf=(.*?);', cookie).group(1)
         self.base_url = "https://music.163.com"
         self.headers = {
             "Cookie": cookie,
@@ -25,12 +25,11 @@ class NECCrawler(MusicCrawler):
         # res = requests.post(url, data=encrypted_data, headers=self.headers)
         # res.raise_for_status()
         # return res.json()
-        max_retries = 3
-        delay_seconds = 1
+        max_retries = 10
+        delay_seconds = 0.5
         encrypted_data = encrypt(payload)
         for attempt in range(max_retries):
             try:
-                time.sleep(delay_seconds)
                 res = requests.post(url, data=encrypted_data, headers=self.headers, timeout=10)
                 res.raise_for_status()
                 res = res.json()

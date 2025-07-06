@@ -14,3 +14,8 @@ error*
 migrations/
 error.*
 000*
+result/
+figs/
+wordclouds/
+figs/*
+wordclouds/*
