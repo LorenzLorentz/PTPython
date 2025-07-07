@@ -1,6 +1,10 @@
-## **Python编程实验报告: 音乐数据爬虫与信息检索系统**
+## **实验报告: 爬虫与信息系统**
+
+王鹏杰 2024010860 计48-经42
 
 **复现与运行项目相关请见`README.md`**
+
+**分析结果请参见数据分析报告**
 
 ### 1. 爬虫
 
@@ -110,11 +114,17 @@ class SingerInfo:
         # 保存为JSON和图片文件
 ```
 
+#### 1.4 实验结果
+
+最终爬取了$136$位歌手和$6543$首歌.
+
 <div STYLE="page-break-after: always;"></div>
 
 ### 2. WEB
 
 我们基于Django框架, 构建了一个功能完备的音乐信息检索网站.
+
+#### 2.1 框架设计
 
 一个典型的Django网站的架构是这样的:
 
@@ -153,13 +163,88 @@ class Song(models.Model):
     
     - **详情页**: 根据传入的ID,查询并展示单首歌曲或单个歌手的完整信息.
 
-- **`Template`**: 我们使用使用Django模板语言(这种语言带有python支持, 可以实现简单的程序) 编写HTML页面. 模板负责接收从视图传递过来的数据(`Context`), 并将其动态渲染成用户最终看到的网页. 我们设计了包括主页、搜索结果页、歌曲详情页和歌手详情页在内的多个模板.
+- **`Template`**: 我们使用使用Django模板语言(这种语言大体上和html相同, 但带有python支持, 可以实现简单的程序) 编写HTML页面. 模板负责接收从视图传递过来的数据(`Context`), 并将其动态渲染成用户最终看到的网页. 我们设计了包括主页、搜索结果页、歌曲详情页和歌手详情页在内的多个模板.
 
 整个网络结构大体遵循这样的**逻辑流程**:
 
 用户请求URL -\> Django的`urls.py`进行路由匹配 -\> 调用`views.py`中对应的函数 -\> 与`Model`交互, 从数据库查询数据 -\> 将数据传递给`Template` -\> 模板引擎渲染HTML页面 -\> 返回给用户浏览器.
 
-具体来说, 我实现了这些页面:
+#### 2.2 核心组件设计
+
+- 数据组件
+
+继承在data这个app的`views.py`中, 依托Sqlite的数据库功能, 实现了聚类, 查找等功能. 比如:
+
+```python
+# 过滤自身并随机查找
+all_songs = singer.songs.exclude(id=song_id)
+all_song_ids = list(all_songs.values_list("id", flat=True))
+random_song_ids = random.sample(all_song_ids, min(len(all_song_ids), num))
+song_list_same = all_songs.filter(id__in=random_song_ids)
+
+# 关键词匹配
+query_name = Q(name__icontains=query_singer)
+query_profile = Q(profile__icontains=query_singer)
+return Singer.objects.filter(query_name | query_profile)
+```
+
+- 分页控件
+
+分页控件依赖django的Paginator, 我们首先需要根据结果和每页个数构造分页器, 然后根据页码获得实际页面对象.
+
+```python
+paginator = Paginator(results, 12)
+page_obj = paginator.get_page(page_number)
+```
+
+为了显示翻页, 我们要在模版中用django特色的html语言实现处理逻辑
+
+```html
+{% if page_obj.has_previous %}
+    <a href="?{{ prefix }}page=1" class="page-btn">首页</a>
+    <a href="?{{ prefix }}page={{ page_obj.previous_page_number }}" class="page-btn">&laquo;上一页</a>
+{% else %}
+    <span class="page-btn disabled">首页</span>
+    <span class="page-btn disabled">&laquo;上一页</span>
+{% endif %}
+```
+
+- 搜索栏控件
+
+搜索栏涉及到一个动态样式的控件, 我们首先需要用html勾勒他的完整样式, 如下涉及了搜索框、下拉栏、异常消息三个元素
+
+```html
+<div class="search-box-interactive">
+    <!--略-->
+    <input type="text" name="q" class="search-input-interactive" id="search-input" placeholder="搜索..." autocomplete="off" required>
+</div>
+
+<div id="search-error-message" style="color: whitesmoke; font-size: 14px; text-align: center; margin-top: 5px;"></div>
+
+<div class="search-dropdown" id="search-dropdown">
+    <ul class="dropdown-menu">
+        <!--略-->
+    </ul>
+</div>
+```
+
+然后我们需要借助JavaScript脚本去捕获涉及到的元素, 处理对应的事件, 如.
+
+```JavaScript
+const searchInput = document.getElementById('search-input');
+const searchDropdown = document.getElementById('search-dropdown');
+// 略
+
+// 1. 点击输入框时，显示/隐藏下拉菜单
+searchInput.addEventListener('focus', function() {
+    searchDropdown.classList.add('active');
+    searchBox.classList.add('focused');
+});
+
+// 略
+```
+
+#### 2.3 页面设计
 
 - 主页(导航页) 包括随机的歌曲推荐和随机的歌手推荐
 
@@ -203,9 +288,11 @@ class Song(models.Model):
 
 ### 3. 数据分析与可视化
 
+**注:分析结果请参见数据分析报告**
+
 #### 3.1 数据预处理
 
-我们首先去除了作词人、编曲、时长等歌词中与内容无关的信息, 然后借助停用词表和`jieba`库进行了分词并去除了非常常见的、与语义表达无关的词.
+我们首先去除了作词人、编曲、时长等歌词中与内容无关的信息, 然后借助停用词表和 **`jieba`库** 进行了分词并去除了非常常见的、与语义表达无关的词.
 
 我们还记录了部分可能用到的信息, 比如歌词长度、独特的词的数量, 这对对歌手的分析会有帮助.
 
@@ -224,7 +311,74 @@ return {
 }
 ```
 
-#### 3.2 基于LDA进行聚类与歌词主题建模
+#### 3.2 整体数据处理架构
+
+为了避免将所有计算、绘图和流程控制代码混杂在一起, 我采用了分层设计, 将整个框架解构成三个核心部分.
+
+1. Analyzer
+
+负责所有的核心计算、数据处理和模型训练. 它接收原始或半处理的数据, 输出结构化的分析结果.
+
+比如 `TopicAnalyzer` 负责训练LDA模型, 并推断每首歌的主题分布.
+
+```Python
+class TopicAnalyzer:
+    def __init__(self, tokenized_docs: list[str]):
+        print("Initializing Topic Analyzer...")
+        self.documents = [doc.split() for doc in tokenized_docs]
+        self.dictionary = Dictionary(self.documents)
+        self.corpus = [self.dictionary.doc2bow(doc) for doc in self.documents]
+        self.model = None
+
+    # 省略代码
+
+    def get_doc_topic_dist(self, doc_tokens: str) -> list[float]:
+        """获取单个文档的主题分布（纯数据）"""
+        bow = self.dictionary.doc2bow(doc_tokens.split())
+        dist = self.model.get_document_topics(bow, minimum_probability=0)
+        return [prob for _, prob in dist]
+```
+2. Visualizer
+
+负责将 Analyzer 生成的数据结果进行可视化呈现. 它接收结构化数据, 输出图表、词云等视觉元素. 由于只绘图, 不计算, Visualizer 的方法都是静态方法, 仅依赖于传入的参数来绘图.
+
+如 `Visualizer.plot_topic_distribution_by_decade` 接收一个包含主题比例的 `DataFrame` 并将其绘制成图表.
+
+```Python
+class Visualizer:
+    @staticmethod
+    def plot_topic_distribution_by_decade(song_df: pd.DataFrame, output_path: Path):
+        """接收数据，绘制不同年代的主题分布图"""
+        print("Plotting topic distribution across decades...")
+        # 仅包含绘图逻辑
+        decade_topic_dist = song_df.groupby("decade")[[f"Topic_{i+1}" for i in range(Config.NUM_TOPICS)]].mean()
+        decade_topic_dist.plot(kind="bar", stacked=True, figsize=(15, 8), ...)
+        plt.title("Topic Distribution Across Decades")
+        plt.savefig(output_path, dpi=150)
+        plt.close()
+```
+
+3. analyze_***函数
+
+负责编排一个完整的分析任务. 它调用 Analyzer 来执行计算, 然后将计算结果传递给 Visualizer 来进行绘图. 这使得主逻辑非常清晰, 易于理解一个完整分析任务的步骤.
+
+如下面的`analyze_decade`函数
+
+```Python
+def analyze_decade(df: pd.DataFrame):
+    """编排与年代相关的分析和可视化任务"""
+    print("\n--- Starting Decade-based Analysis ---")
+    # 任务1: 不同年代的词云图 (调用Visualizer)
+    Visualizer.plot_wordclouds_by_decade(df, Config.WORDCLOUD_DIR)
+
+    # 任务2: 不同年代的主题分布变化 (调用Visualizer)
+    # 注意: 此处传入的df已经由之前的步骤计算好了主题分布
+    Visualizer.plot_topic_distribution_by_decade(df, Config.OUTPUT_DIR / "decade_topic_distribution.png")
+```
+
+具体来说, 我用到了 `TopicAnalyzer, SingerAnalyzer, LyricAnalyzer` 三个 `Analyzer`, 涉及 wordcloud图等一系列 `Visualizer` 的方法, 还有 `analyze_decade, analyze_singer, analyze_lyric` 三个函数.
+
+#### 3.3 基于LDA进行聚类与歌词主题建模
 
 我们建立这样一个LDA模型:
 
@@ -238,126 +392,39 @@ LdaMulticore(
 )
 ```
 
-最终获得的主题为:
+其中用到了 **gensim库**, 这是一个主要涉及机器学习和自然语言处理的python库.
 
-```txt
-Topic: 1
-Words: 0.013*"菩萨" + 0.012*"世界" + 0.011*"da" + 0.009*"Love" + 0.008*"天天" + 0.007*"所有" + 0.007*"有人" + 0.006*"不是" + 0.006*"努力" + 0.005*"ya" + 0.005*"一起" + 0.005*"永远" + 0.004*"Baby" + 0.004*"be" + 0.004*"感觉"
+然后我们可以将歌词按照主题分为10类, 这可以让我们更深刻、更快速地理解歌词的内核, 便于后续大规模分析.
 
-Topic: 2
-Words: 0.013*"寂寞" + 0.010*"幸福" + 0.009*"真的" + 0.006*"la" + 0.006*"一生" + 0.006*"OH" + 0.005*"就算" + 0.005*"不再" + 0.005*"自由" + 0.004*"所有" + 0.004*"心中" + 0.004*"是否" + 0.004*"ha" + 0.004*"我爱你" + 0.004*"知道"
+#### 3.4 年代分析
 
-Topic: 3
-Words: 0.013*"Oh" + 0.011*"不能" + 0.010*"知道" + 0.009*"现在" + 0.007*"心中" + 0.007*"我要" + 0.006*"Yeah" + 0.006*"快乐" + 0.005*"不会" + 0.005*"曾经" + 0.005*"世界" + 0.005*"na" + 0.005*"是否" + 0.005*"总是" + 0.005*"地方"
+1. 为了探究不同年代之间歌曲主题的变迁, 我绘制了不同年代不同主题的占比变化图
 
-Topic: 4
-Words: 0.030*"不要" + 0.007*"快乐" + 0.007*"知道" + 0.007*"我会" + 0.006*"幸福" + 0.006*"也许" + 0.006*"心里" + 0.006*"时间" + 0.005*"已经" + 0.004*"不会" + 0.004*"祝福" + 0.004*"故事" + 0.004*"想要" + 0.004*"永远" + 0.004*"感觉"
+2. 为了探究不同年代的关键词, 我绘制了不同年代的词云图
 
-Topic: 5
-Words: 0.017*"love" + 0.010*"La" + 0.009*"不会" + 0.008*"慢慢" + 0.008*"想念" + 0.008*"随风" + 0.007*"思念" + 0.007*"一起" + 0.005*"天空" + 0.005*"今天" + 0.005*"世界" + 0.005*"my" + 0.005*"My" + 0.004*"跟着" + 0.004*"一声"
+此处和后文中的词云图均基于 **wordcloud库** 实现
 
-Topic: 6
-Words: 0.013*"知道" + 0.007*"离开" + 0.006*"明白" + 0.006*"不会" + 0.005*"世界" + 0.005*"回来" + 0.005*"时间" + 0.005*"不能" + 0.005*"不想" + 0.005*"想要" + 0.005*"眼泪" + 0.005*"回忆" + 0.004*"不是" + 0.004*"已经" + 0.004*"等待"
+#### 3.5 歌手分析
 
-Topic: 7
-Words: 0.007*"世界" + 0.006*"等待" + 0.005*"不想" + 0.005*"未来" + 0.004*"梦想" + 0.004*"青春" + 0.004*"希望" + 0.004*"喜欢" + 0.004*"不是" + 0.004*"永远" + 0.004*"月亮" + 0.004*"生活" + 0.004*"现在" + 0.004*"远方" + 0.003*"地方"
+1. 我们首先基于之前得到的主题分类对歌手进行了聚类.
 
-Topic: 8
-Words: 0.014*"一天" + 0.009*"世界" + 0.008*"一生" + 0.008*"我要" + 0.007*"永远" + 0.007*"oh" + 0.007*"感觉" + 0.007*"Baby" + 0.006*"相信" + 0.005*"生命" + 0.005*"女人" + 0.005*"心中" + 0.005*"岁月" + 0.005*"未来" + 0.004*"无法"
+具体说, 由于每一首歌可以有10个主题上的分数, 我们取平均后便得到了一个歌手的10维向量表征, 然后我们就可以利用 **KMeans算法** 对歌手进行聚类分析. 为了可视化, 我们利用**PCA**(主成分分析)算法将10维向量投影到二维平面上, 然后对不同聚类进行染色, 执行可视化.
 
-Topic: 9
-Words: 0.010*"爱情" + 0.008*"一起" + 0.007*"最后" + 0.007*"回忆" + 0.007*"世界" + 0.006*"不会" + 0.005*"永远" + 0.005*"曾经" + 0.005*"温柔" + 0.005*"朋友" + 0.005*"快乐" + 0.005*"不再" + 0.005*"所有" + 0.005*"相信" + 0.005*"记得"
+其中我们用到了 **scikit-learn 库**, 调用了其 KMeans 与 PCA 实现.
 
-Topic: 10
-Words: 0.056*"you" + 0.032*"the" + 0.029*"me" + 0.022*"it" + 0.020*"to" + 0.020*"my" + 0.012*"in" + 0.012*"that" + 0.011*"know" + 0.011*"You" + 0.011*"love" + 0.011*"oh" + 0.010*"your" + 0.010*"and" + 0.010*"be"
-```
+2. 然后我们对不同聚类的歌手也分别绘制了词云图, 来观察其语言特征.
 
-#### 3.3 年代分析
+3. 最后, 为了探究不同歌手的歌曲的情感走向, 我调用 **snownlp 库**, 它内置了一个基于贝叶斯模型的中文情感分类器, 可以为每个句子打一个情感分数. 我基于此绘制了不同歌手的歌曲情感走向, 不同聚类歌手的歌曲情感走向.
 
-1. 不同年代的主题变迁
+#### 3.6 歌词分析
 
-![alt text](figs/decade_topic_dist.png)
+1. 我首先做了最简单的词频分析, 绘制从高到低前20个常用词(已去除停用词)的词频分布;
 
-观察这个图, 我们可以发现:
+2. 然后我考察更细节的统计量, 绘制了歌曲长度、歌曲中unique的词汇的数量、歌曲中rare(定义为在不超过5首歌中出现)的词汇数量的统计图.
 
-话题2和话题4轻微下降. 话题2的关键词是“寂寞”、“幸福”、“真的”、“一生”、“我爱你”. 这是非常典型的情歌主题. 话题4的关键词则是“不要”、“快乐”、“幸福”、“祝福”、“故事”, 构成了典型的分手或告别场景——虽然痛苦, 但仍给予对方祝福. 这两类主题是华语乐坛的传统优势项目, 它们比例的下降可能是由于其他品类的崛起; 又或者新曲式降低了人们对苦情歌的依赖.
+3. 最后我考察了不同歌手的unique词汇和rare词汇的占比, 并绘制出各自的前十名.
 
-话题7明显下降: 关键词是“世界”、“未来”、“梦想”、“青春”、“希望”、“月亮”、“远方”等等充满理想主义和浪漫色彩的主题. 这是从集体主义、英雄主义的叙事到个人主义的转变.
-
-话题8 9明显上升. 话题8的关键词是“一天”、“一生”、“我要”、“永远”、“感觉”、“生命”、“女人”. 非常强调“我”的存在和意愿, 充满了个人感受. 而话题9的关键词是“爱情”、“一起”、“最后”、“回忆”、“朋友”、“温柔”. 相比于纯粹的苦情, 这个主题更加综合而温和. 这印证了个体意识的觉醒, 情感叙事的深化(不再是单纯的苦情或者宏大叙事).
-
-话题1 3 5的含量相对稳定, 且一直较高. 话题1的关键词有“努力”, “天天”, “菩萨”. 整体上说应该是侧重奋斗与感悟的主题, 话题3的关键词有“不能”, “知道”, “是否”, 这些都是与内心挣扎与困惑相关的主题词汇. 话题5的关键词有“慢慢”、“随风”、“天空”, “想念”和“思念”, 这些词是更持久、更普遍的思念, 是滤掉痛苦之后深沉的回忆. 综上: 这三个主题是永恒的, 因此始终在华语歌曲中占有重要地位.
-
-2. 不同年代的词云图
-
-![alt text](figs/wordcloud_1980s.png)
-![alt text](figs/wordcloud_1990s.png) 
-![alt text](figs/wordcloud_2000s.png) 
-![alt text](figs/wordcloud_2010s.png) 
-![alt text](figs/wordcloud_2020s.png) 
-
-#### 3.4 歌手分析
-
-1. 歌手聚类
-
-我们借助歌曲的主题建模, 可以知晓不同歌手的歌曲的主题倾向, 可以基于此对歌手进行聚类分析.
-
-![alt text](figs/artist_cluster_visualization.png)
-
-歌手被分为5类:
-
-Cluster 0是是数量最大的群体, 代表了华语流行音乐最核心、最主流的歌词主题, 是芭乐的典型代表. 比如说蔡依林, 萧亚轩, 五月天, 汪苏泷.
-
-Cluster 2的歌手在歌词上表现出的主题更为宏大、深远, 富含文化意象和人文关怀. 比如里面有许多充满中国风的歌手, 许多摇滚歌手, 许多充满异域风情的歌手.
-
-Cluster 4 的歌手在歌词上更内省、更细腻, 更像诗歌或散文, 注重捕捉微妙的情绪和瞬间的感悟, 可能富含比喻、象征等修辞手法. 比如王菲, 陈绮贞, 陈珊妮等人.
-
-Cluster 1 代表了更年轻、更直接、更具潮流感的主题, 比如鹿晗和华晨宇
-
-Cluster 3 这个聚类非常清晰, 显著地与语言相关, 比如EXO, 比如Taylor Swift.
-
-2. 不同聚类歌手的词云图
-
-![alt text](figs/wordcloud_cluster_0.png) 
-![alt text](figs/wordcloud_cluster_1.png) 
-![alt text](figs/wordcloud_cluster_2.png) 
-![alt text](figs/wordcloud_cluster_3.png) 
-![alt text](figs/wordcloud_cluster_4.png)
-
-我们可以注意到, 所有歌手的词云图中都醒目地出现了“世界”、“知道”、“不会”等词, 这类与人生思考、离别伤感的歌是华语歌曲永恒的主题.
-
-Cluster 0 作为芭乐的代表, 其关键词会更偏向情歌.
-
-CLuster 1 作为潮流的代表, 其关键词出现了许多英文词汇.
-
-Cluster 2 作为更宏大的歌手的代表, 其里面有很多大词, 比如“我要”、“所有”.
-
-Cluster 4 作为细腻派歌手的代表, 里面有很多小词和委婉的转折, 比如“感觉”、“或许”、“就算”.
-
-3. 歌手歌词的情感变化
-
-我们首先摘取了各个聚类的歌手做整体的情感变化分析:
-
-在正向情感程度上: 宏大类(Cluster 2) > 芭乐类(Cluster 0) > 细腻类(Cluster 4) > 潮流类(Cluster 1) > 韩流类(Cluster 3)
-
-![alt text](figs/sentiment_arc_analysis_by_cluster.png)
-
-我们还可以在下图中看出不同歌手具体的情感走势, 可以明显看出王菲的歌曲的情感就明显更消极.
-
-![alt text](figs/sentiment_arc_analysis.png)
-
-#### 3.5 歌词具体分析
-
-1. 词频统计
-
-![alt text](figs/word_frequencies.png) 
-
-2. 歌词长度, 独特单词数, 生僻单词数统计
-
-![alt text](figs/lyric_metrics_distribution.png) 
-![alt text](figs/artist_vocabulary_rankings.png)
-
-#### 3.6 结论
+4. 这里涉及到大量的聚合统计, 主要基于 **pandas库**完成的.
 
 <div STYLE="page-break-after: always;"></div>
 
@@ -365,18 +432,18 @@ Cluster 4 作为细腻派歌手的代表, 里面有很多小词和委婉的转�
 
 #### 4.1 时间投入
 
-- 爬虫模块: 约 **15小时**. 其中,纯粹的coding时间约5小时, 但大部分时间(约10+小时)用于分析网站请求、断点调试JavaScript以及攻克加密算法, 这是最具挑战性的部分.
+- 爬虫模块: 约 **15小时**. 其中纯粹的coding时间约5小时, 但大部分时间(约10小时)用于分析网站请求、断点调试JavaScript, 这是最具挑战性的部分.
 
-- Web开发模块: 约 **15小时**. 从搭建最简单的框架到, 到编写前后端逻辑、设计数据库模型和CSS样式美化 ,此部分代码量最大, 工作最为繁琐.
+- Web开发模块: 约 **20小时**. 从搭建简单的框架, 到编写前后端逻辑、设计数据库模型和CSS样式美化, 此部分代码量最大, 工作最为繁琐.
 
-- 数据分析模块: 约 **10小时**. 在数据准备就绪后,分析和可视化的过程相对流畅愉快. 期间遇到的主要问题是发现初期爬虫漏掉了 "发行时间" 字段, 需要返工补充数据. 还有就是有时候结论并不显著, 需要绞尽脑汁去对比分析.
+- 数据分析模块: 约 **10小时**. 在数据准备就绪后, 分析和可视化的过程相对流畅愉快. 期间遇到的主要问题是发现初期爬虫漏掉了 "发行时间" 字段, 需要返工补充数据. 还有就是有时候结论并不显著, 需要绞尽脑汁去对比分析.
 
 (最近7天时间投入可视化 (未计入爬虫部分)) (源:wakatime)
 ![alt text](figs/wakatime.png)
 
 #### 4.2 收获
 
-本次大作业是一次极具价值的全栈实践. 通过这个项目, 我不仅系统地学习和应用了网络爬虫、后端开发和数据分析这三大现代软件工程中的技术, 这个过程极大地锻炼了我分析问题、解决问题以及项目工程化的能力. 特别是在研究反爬虫机制时, 虽然过程艰辛,但成功破解后的成就感是无与伦比的.
+本次大作业是一次极具价值的全栈实践. 通过这个项目, 我系统地学习和应用了网络爬虫、后端开发和数据分析这三大技术, 这个过程极大地锻炼了我分析问题、解决问题以及项目工程化的能力. 特别是在研究反爬虫机制时, 虽然过程艰辛,但成功破解后的成就感是无与伦比的.
 
 #### 4.3 建议
 

@@ -1,10 +1,10 @@
 <nav class="pagination" aria-label="分页">
     {% if page_obj.has_previous %}
         <a href="?{{ prefix }}page=1" class="page-btn">首页</a>
-        <a href="?{{ prefix }}page={{ page_obj.previous_page_number }}" class="page-btn">&laquo;</a>
+        <a href="?{{ prefix }}page={{ page_obj.previous_page_number }}" class="page-btn">&laquo;上一页</a>
     {% else %}
         <span class="page-btn disabled">首页</span>
-        <span class="page-btn disabled">&laquo;</span>
+        <span class="page-btn disabled">&laquo;上一页</span>
     {% endif %}
 
     {% for i in page_obj.paginator.page_range %}
@@ -16,10 +16,10 @@
     {% endfor %}
 
     {% if page_obj.has_next %}
-        <a href="?{{ prefix }}page={{ page_obj.next_page_number }}" class="page-btn">&raquo;</a>
+        <a href="?{{ prefix }}page={{ page_obj.next_page_number }}" class="page-btn">下一页&raquo;</a>
         <a href="?{{ prefix }}page={{ page_obj.paginator.num_pages }}" class="page-btn">尾页</a>
     {% else %}
-        <span class="page-btn disabled">&raquo;</span>
+        <span class="page-btn disabled">下一页&raquo;</span>
         <span class="page-btn disabled">尾页</span>
     {% endif %}
 

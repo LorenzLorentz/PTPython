@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import json
 import re
@@ -9,6 +10,7 @@ from tqdm import tqdm
 SINGER_DIR = Path("../crawler/Data/Singer")
 SONG_DIR = Path("../crawler/Data/Song")
 OUTPUT_CSV = "Data/all_songs.csv"
+os.makedirs("Data", exist_ok=True)
 
 # 获取停用词
 STOPWORDS = set()

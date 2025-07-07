@@ -27,19 +27,19 @@ def analyze_artist(df:pd.DataFrame):
         print(singer_clusters_df.to_csv(), file=f)
     
     # 可视化歌手聚类结果
-    Visualizer.plot_singer_clusters(singer_clusters_df, Config.OUTPUT_DIR / "artist_cluster_visualization.png")
+    Visualizer.plot_singer_clusters(singer_clusters_df, Config.OUTPUT_DIR / "singer_cluster_visualization.png")
     
     # 不同聚类歌手的词云图
     Visualizer.plot_wordclouds_by_cluster(df, singer_clusters_df, Config.WORDCLOUD_DIR)
 
     # 歌手特征词分析
-    singer_analyzer.extract_charac_words(Config.OUTPUT_DIR / "artist_characteristic_words.json")
+    singer_analyzer.extract_charac_words(Config.OUTPUT_DIR / "singer_characteristic_words.json")
 
     # 歌手词汇丰富度分析
     if not "rare_word_cnt" in df.columns:
         df = LyricAnalyzer().stat_rare_words()
     vocabulary_rankings = singer_analyzer.analyze_vocabulary_richness()
-    Visualizer.plot_singer_vocab_rankings(vocabulary_rankings, Config.OUTPUT_DIR / "artist_vocabulary_rankings.png")
+    Visualizer.plot_singer_vocab_rankings(vocabulary_rankings, Config.OUTPUT_DIR / "singer_vocabulary_rankings.png")
 
     # 不同聚类歌手的情感走向分析与可视化
     sentiment_data = singer_analyzer.get_sentiment()
