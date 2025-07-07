@@ -1,9 +1,0 @@
-beautifulsoup4
-requests
-lxml
-tqdm
-notebook
-jupyter
-webdriver-manager
-selenium
-scrapy
