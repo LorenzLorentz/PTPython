@@ -8,10 +8,14 @@ from django.utils import timezone
 from tqdm import tqdm
 
 def split_name_and_alias(s:str):
+    """分割名字与别名"""
+
     res = s.partition('，')
     return res[0].strip(), (res[1]+res[2]).strip() or None
 
 def parse_time(time:str, default_year=None):
+    """解析时间文本"""
+
     if not time or not isinstance(time, str):
         return None
 
@@ -57,8 +61,11 @@ def parse_time(time:str, default_year=None):
 
 class Command(BaseCommand):
     def handle(self, *args, **kwargs):
+        """将json文件导入数据库"""
+
         self.stdout.write(self.style.SUCCESS("Start Importing Data..."))
 
+        # 相关文件夹设置
         base_dir = settings.BASE_DIR
         singer_dir = os.path.join(base_dir, "../crawler/Data", "Singer")
         song_dir = os.path.join(base_dir, "../crawler/Data", "Song")
@@ -67,6 +74,7 @@ class Command(BaseCommand):
         singer_files = [f for f in os.listdir(singer_dir) if f.endswith('.json')]
 
         for singer_file in singer_files:
+            """导入歌手"""
             with open(os.path.join(singer_dir, singer_file), 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 
@@ -75,6 +83,7 @@ class Command(BaseCommand):
                 name, alias = split_name_and_alias(data["singer_name"])
 
                 try:
+                    # 创建歌手, 唯一性标准为singer_id
                     singer, created = Singer.objects.update_or_create(
                         singer_id = data.get("singer_id"),
                         defaults = {
@@ -99,14 +108,17 @@ class Command(BaseCommand):
         num_fail_song = 0
         with tqdm(song_files, desc="Processing Songs", leave=False) as pbar:
             for song_file in pbar:
+                """导入歌曲"""
                 with open(os.path.join(song_dir, song_file), 'r', encoding='utf-8') as f:
                     data = json.load(f)
                     singer_name = data.get("song_singer")[1]
                     singer_singer_id = data.get("song_singer")[0]
 
                     try:
+                        # 获取对应歌手
                         singer_obj = Singer.objects.get(singer_id=singer_singer_id)
 
+                        # 创建歌曲, 唯一性标准为song_id
                         song, created = Song.objects.update_or_create(
                             song_id = data.get("song_id"),
                             defaults = {
@@ -126,8 +138,10 @@ class Command(BaseCommand):
                                 comments_raw = json.loads(comments_raw)
 
                             for comment_raw in comments_raw:
+                                """导入评论"""
                                 comment_time = comment_raw.get("time")
                                 
+                                # 解析评论时间
                                 try:
                                     comment_time = parse_time(comment_time)
                                 except Exception as e:
@@ -136,7 +150,8 @@ class Command(BaseCommand):
                                     with open("error.log", "w") as f:
                                         print("comment", data.get("song_id"), e, file=f)
                                     continue
-
+                                
+                                # 创建评论
                                 comment, created = Comment.objects.update_or_create(
                                     nickname = comment_raw.get("nickname"),
                                     image = comment_raw.get("image"),
@@ -149,6 +164,7 @@ class Command(BaseCommand):
                         else:
                             self.stdout.write(f"Updating: {song.name}")
 
+                    # 错误信息处理与记录
                     except Singer.DoesNotExist:
                         self.stdout.write(self.style.WARNING(f'Warning: Song "{data.get("song_name")}" \'s singer "{singer_name}" does not exist'))
                         num_fail_song += 1

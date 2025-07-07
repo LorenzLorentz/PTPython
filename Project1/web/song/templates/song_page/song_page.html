@@ -112,12 +112,11 @@
             const lyricsContent = document.getElementById('lyrics-content');
             const toggleBtn = document.getElementById('lyrics-toggle-btn');
 
-            // 检查歌词内容是否真的超出了折叠高度
-            // scrollHeight 是元素内容的实际高度，clientHeight 是可见高度
+            // 检查内容是否真的超出了折叠高度
             if (lyricsContent.scrollHeight > lyricsContent.clientHeight) {
-                toggleBtn.style.display = 'block'; // 如果内容超出，则显示按钮
+                toggleBtn.style.display = 'block';
             } else {
-                 toggleBtn.style.display = 'none'; // 如果内容没超出，则隐藏按钮
+                 toggleBtn.style.display = 'none';
             }
 
             toggleBtn.addEventListener('click', function() {

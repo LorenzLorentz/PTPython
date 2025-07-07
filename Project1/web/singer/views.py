@@ -1,29 +1,28 @@
-import os
-import json
-import random
 from django.conf import settings
 from django.shortcuts import render, get_object_or_404
-from django.http import Http404, HttpRequest
+from django.http import HttpRequest
 from django.core.paginator import Paginator
 from data.views import get_singer_list_random, get_song_list_same
 from data.models import Singer
 
 def singer_page(request:HttpRequest, singer_id:str):
+    """歌手详情界面"""
+
+    # 获取歌手对象
     singer = get_object_or_404(Singer, singer_id=singer_id)
     
-    # 1. 下方分页显示歌曲
+    # 获取下方分页显示歌曲
     song_list = singer.songs.all()
     paginator = Paginator(song_list, 10)
     song_list_page = paginator.get_page(request.GET.get('page'))
     
-    # 2. 右侧随机推荐歌曲
-    # song_list_random = random.sample(song_list, k=min(3, len(singer["singer_songs"])))
-    # get_song_info_from_id(song_list=song_list_random)
+    # 获取右侧随机推荐歌曲
     song_list_same = get_song_list_same(singer.singer_id, num=3)
 
-    # 3. 右侧随机推荐歌手
+    # 获取右侧随机推荐歌手
     singer_list_random = get_singer_list_random(num=2)
 
+    # 上下文数据
     context = {
         "singer": singer,
         "song_list_page": song_list_page,
@@ -31,4 +30,5 @@ def singer_page(request:HttpRequest, singer_id:str):
         "singer_list_random": singer_list_random,
     }
     
+    # 渲染并返回Http响应
     return render(request, "singer_page/singer_page.html", context)

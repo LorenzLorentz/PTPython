@@ -15,9 +15,12 @@
                 <img src="{{singer.image}}" alt="歌手照片" class="artist-photo">
                 <div class="artist-info">
                     <h1 class="artist-name"><a href="{{singer.url}}">{{singer.name}}</a></h1>
-                    <p class="artist-intro">
-                        {{ singer.profile|linebreaksbr }}
-                    </p>
+                    <div class="artist-intro-wrapper">
+                        <p class="artist-intro">
+                            {{ singer.profile|linebreaksbr }}
+                        </p>
+                        <button class="toggle-button" style="display: none;">阅读更多</button>
+                    </div>
                 </div>
             </header>
 
@@ -69,4 +72,31 @@
             </div>
         </aside>
     </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const intro = document.querySelector('.artist-intro');
+            const toggleButton = document.querySelector('.toggle-button');
+            const maxHeight = 16 * 1.7 * 6  ;
+
+            if (intro.scrollHeight > maxHeight) {
+                toggleButton.style.display = 'inline-block';
+                intro.classList.add('collapsed');
+            } else {
+                return;
+            }
+
+            toggleButton.addEventListener('click', function() {
+                if (intro.classList.contains('collapsed')) {
+                    intro.classList.remove('collapsed');
+                    intro.classList.add('expanded');
+                    this.textContent = '收起';
+                } else {
+                    intro.classList.remove('expanded');
+                    intro.classList.add('collapsed');
+                    this.textContent = '阅读更多';
+                }
+            });
+        });
+    </script>
 {% endblock %}
