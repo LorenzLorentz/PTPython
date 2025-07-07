@@ -28,7 +28,10 @@
                 <h2>所有歌曲</h2>
                 <ul class="song-list">
                     {% for song in song_list_page %}
-                        <li><a href="{% url 'song_page' song_id=song.song_id %}">{{song.name}}</a></li>
+                        <a href="{% url 'song_page' song_id=song.song_id %}" class="top-work-card">
+                            <img src="{{song.cover}}" alt="歌曲封面">
+                            <span><h3>{{song.name}}</h3></span>
+                        </a>
                     {% empty %}
                         <li>暂无歌曲</li>
                     {% endfor %}

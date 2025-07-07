@@ -3,6 +3,7 @@ from django.core.paginator import Paginator
 from .models import Song, Singer
 import random
 from django.db.models import QuerySet
+from django.db.models import Q
 
 def get_song_list_random(num:int):
     """获得指定数量随机歌曲"""
@@ -46,8 +47,13 @@ def get_singer_list_all():
 
 def search_singer(query_singer: str) -> QuerySet[Singer]:
     """根据关键词过滤歌手列表"""
-    return Singer.objects.filter(name__icontains=query_singer)
+    query_name = Q(name__icontains=query_singer)
+    query_profile = Q(profile__icontains=query_singer)
+    return Singer.objects.filter(query_name | query_profile)
 
 def search_song(query_song: str) -> QuerySet[Song]:
     """根据关键词过滤歌曲列表"""
-    return Song.objects.filter(name__icontains=query_song)
+    query_name = Q(name__icontains=query_song)
+    query_lyric = Q(lyric__icontains=query_song)
+    query_singer = Q(singer__name__icontains=query_song)
+    return Song.objects.filter(query_name | query_lyric | query_singer)

@@ -1,5 +1,6 @@
 import pandas as pd
 from tqdm import tqdm
+import os
 
 from topic_ana import TopicAnalyzer
 from singer_ana import SingerAnalyzer
@@ -65,6 +66,9 @@ def main():
     
     # 加载、处理数据
     print("Loading and preprocessing data...")
+    if not os.path.exists(Config.DATASET_PATH):
+        from pre_process import main as preprocess
+        preprocess()
     df = pd.read_csv(Config.DATASET_PATH)   
     df["decade"] = pd.cut(df["release_year"], bins=Config.DECADE_BINS, labels=Config.DECADE_LABELS, right=False)
     df.dropna(subset=["tokenized_lyric", "decade", "processed_lyric"], inplace=True)
