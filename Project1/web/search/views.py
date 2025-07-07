@@ -12,7 +12,7 @@ def search_page(request:HttpRequest):
     
     # 获取搜索信息
     search_type = request.GET.get("type")
-    query = request.GET.get("q", "")
+    query = request.GET.get("q", "")[:20]
     page_number = request.GET.get('page')
 
     # 构建初始上下文

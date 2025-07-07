@@ -87,6 +87,10 @@ def main():
     # 处理所有歌曲
     songs_df = load_songs(SONG_DIR)
 
+    singer_song_cnt = songs_df['singer_name'].value_counts()
+    singers_to_remove = singer_song_cnt[singer_song_cnt<20].index
+    songs_df = songs_df[~songs_df['singer_name'].isin(singers_to_remove)]
+
     # 加入发行年份信息
     songs_df['release_year'] = songs_df['song_time'].str.extract(r'(\d{4})').astype(int)
     
