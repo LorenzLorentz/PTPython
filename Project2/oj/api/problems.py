@@ -1,19 +1,49 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException, Request
+from typing import List
+
+from oj import db
+from oj.schemas.response import ResponseModel
+from oj.schemas.problem import Problem, ProblemAdd, ProblemID, ProblemBrief
+from oj.api.permission import check_admin
 
 router = APIRouter()
 
-@router.get(
-    "/",
-)
-async def get_problems_list() -> dict:
-    """查看题目列表。"""
-    all_problems = [
-        {"id": "sum_2", "title": "两数之和"},
-        {"id": "max_num", "title": "最大数"}
-    ]
+@router.get("/", response_model=ResponseModel[List[ProblemBrief]])
+async def get_problems_list(offset:int=0, limit:int=20, db_session=Depends(db.database.get_db)):
+    """查看题目列表"""
+    problem_list = db.db_problem.get_problem_list(db=db_session, offset=offset, limit=limit)
     
-    return {
-        "code": 200,
-        "msg": "success",
-        "data": all_problems
-    }
+    return {"msg": "success", "data": problem_list}
+
+@router.post("/", response_model=ResponseModel[List[ProblemID]], status_code=200)
+async def add_problem(problem:ProblemAdd, db_session=Depends(db.database.get_db)):
+    """添加题目"""
+    exist = db.db_problem.get_problem(db=db_session, problem_id=problem.id)
+    if exist:
+        raise HTTPException(status_code=409, detail="id 已存在")
+
+    db_problem = db.db_problem.add_problem(db=db_session, problem=problem)
+    return {"msg": "add success", "data": db_problem}
+
+@router.delete("/{problem_id}", response_model=ResponseModel[List[ProblemID]])
+async def delete_problem(request:Request, problem_id:int, db_session=Depends(db.database.get_db)) -> dict:
+    """删除题目"""
+    if not check_admin(request=request, db_session=db_session):
+        raise HTTPException(status_code=403, detail="权限不足")
+
+    db_problem = db.db_problem.delete_problem(db=db_session, problem_id=problem_id)
+    
+    if db_problem is None:
+        raise HTTPException(status_code=404, detail="题目不存在")
+    
+    return {"msg": "delete success", "data": db_problem}
+
+@router.get("/{problem_id}", response_model=ResponseModel[Problem])
+async def get_problem(problem_id:int, db_session=Depends(db.database.get_db)) -> dict:
+    """查看题目信息"""
+    problem = db.db_problem.get_problem(db=db_session, problem_id=problem_id)
+
+    if problem is None:
+        raise HTTPException(status_code="404", detail="题目不存在")
+
+    return {"msg": "success", "data": problem}
