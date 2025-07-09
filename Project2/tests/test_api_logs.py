@@ -22,8 +22,8 @@ def test_get_submission_log(client):
             {"input": "10 20\n", "output": "30\n"}
         ],
         "constraints": "|a|,|b| <= 10^9",
-        "time_limit": "1s",
-        "memory_limit": "128MB"
+        "time_limit": 1.0,
+        "memory_limit": 128
     }
     client.post("/api/problems/", json=problem_data)
     
@@ -90,8 +90,8 @@ def test_configure_log_visibility(client):
         "samples": [{"input": "1 2\n", "output": "3\n"}],
         "testcases": [{"input": "1 2\n", "output": "3\n"}],
         "constraints": "|a|,|b| <= 10^9",
-        "time_limit": "1s",
-        "memory_limit": "128MB"
+        "time_limit": 1.0,
+        "memory_limit": 128
     }
     client.post("/api/problems/", json=problem_data)
     
@@ -143,8 +143,8 @@ def test_access_audit_logs(client):
         "samples": [{"input": "1 2\n", "output": "3\n"}],
         "testcases": [{"input": "1 2\n", "output": "3\n"}],
         "constraints": "|a|,|b| <= 10^9",
-        "time_limit": "1s",
-        "memory_limit": "128MB"
+        "time_limit": 1.0,
+        "memory_limit": 128
     }
     client.post("/api/problems/", json=problem_data)
     

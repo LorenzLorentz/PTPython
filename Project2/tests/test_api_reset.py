@@ -18,8 +18,8 @@ def test_system_reset_success(client):
         "samples": [{"input": "1\n", "output": "1\n"}],
         "testcases": [{"input": "1\n", "output": "1\n"}],
         "constraints": "|x| <= 10^9",
-        "time_limit": "1s",
-        "memory_limit": "128MB"
+        "time_limit": 1.0,
+        "memory_limit": 128
     }
     client.post("/api/problems/", json=problem_data)
     

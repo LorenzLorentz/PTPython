@@ -19,8 +19,8 @@ def test_submit_solution(client):
         "samples": [{"input": "1 2\n", "output": "3\n"}],
         "testcases": [{"input": "1 2\n", "output": "3\n"}],
         "constraints": "|a|,|b| <= 10^9",
-        "time_limit": "1s",
-        "memory_limit": "128MB"
+        "time_limit": 1.0,
+        "memory_limit": 128
     }
     client.post("/api/problems/", json=problem_data)
     
@@ -68,8 +68,8 @@ def test_get_submission_result(client):
         "samples": [{"input": "1 2\n", "output": "3\n"}],
         "testcases": [{"input": "1 2\n", "output": "3\n"}],
         "constraints": "|a|,|b| <= 10^9",
-        "time_limit": "1s",
-        "memory_limit": "128MB"
+        "time_limit": 1.0,
+        "memory_limit": 128
     }
     client.post("/api/problems/", json=problem_data)
     
@@ -122,8 +122,8 @@ def test_get_submissions_list(client):
         "samples": [{"input": "1 2\n", "output": "3\n"}],
         "testcases": [{"input": "1 2\n", "output": "3\n"}],
         "constraints": "|a|,|b| <= 10^9",
-        "time_limit": "1s",
-        "memory_limit": "128MB"
+        "time_limit": 1.0,
+        "memory_limit": 128
     }
     client.post("/api/problems/", json=problem_data)
     
@@ -175,8 +175,8 @@ def test_rejudge_submission(client):
         "samples": [{"input": "1 2\n", "output": "3\n"}],
         "testcases": [{"input": "1 2\n", "output": "3\n"}],
         "constraints": "|a|,|b| <= 10^9",
-        "time_limit": "1s",
-        "memory_limit": "128MB"
+        "time_limit": 1.0,
+        "memory_limit": 128
     }
     client.post("/api/problems/", json=problem_data)
     

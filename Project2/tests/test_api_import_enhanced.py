@@ -38,8 +38,8 @@ def test_data_import_complete_verification(client):
                     {"input": "1 2\n", "output": "3\n"},
                     {"input": "5 7\n", "output": "12\n"}
                 ],
-                "time_limit": "2s",
-                "memory_limit": "256MB"
+                "time_limit": 2.0,
+                "memory_limit": 256
             },
             {
                 "id": "imported_prob2_" + uuid.uuid4().hex[:4],
@@ -50,8 +50,8 @@ def test_data_import_complete_verification(client):
                 "samples": [{"input": "10\n", "output": "10\n"}],
                 "constraints": "|x| <= 10^9",
                 "testcases": [{"input": "10\n", "output": "10\n"}],
-                "time_limit": "1s",
-                "memory_limit": "128MB"
+                "time_limit": 1.0,
+                "memory_limit": 128
             }
         ],
         "submissions": [
@@ -274,8 +274,8 @@ def test_data_import_large_dataset(client):
             "samples": [{"input": f"{i}\n", "output": f"{i}\n"}],
             "constraints": "|x| <= 10^9",
             "testcases": [{"input": f"{i}\n", "output": f"{i}\n"}],
-            "time_limit": "1s",
-            "memory_limit": "128MB"
+            "time_limit": 1.0,
+            "memory_limit": 128
         })
 
     json_content = json.dumps(large_data).encode('utf-8')

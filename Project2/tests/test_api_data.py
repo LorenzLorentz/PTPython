@@ -22,8 +22,8 @@ def test_data_export(client):
         "samples": [{"input": "1 2", "output": "3"}],
         "constraints": "|a|,|b| <= 10^9",
         "testcases": [{"input": "1 2", "output": "3"}],
-        "time_limit": "1s",
-        "memory_limit": "128MB"
+        "time_limit": 1.0,
+        "memory_limit": 128
     }
     client.post("/api/problems/", json=problem_data)
 
@@ -91,8 +91,8 @@ def test_data_import(client):
                 "samples": [{"input": "1 2", "output": "3"}],
                 "constraints": "|a|,|b| <= 10^9",
                 "testcases": [{"input": "1 2", "output": "3"}],
-                "time_limit": "1s",
-                "memory_limit": "128MB"
+                "time_limit": 1.0,
+                "memory_limit": 128
             }
         ],
         "submissions": []

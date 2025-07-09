@@ -86,8 +86,8 @@ def create_test_problem(client, problem_id=None):
         "samples": [{"input": "1 2\n", "output": "3\n"}],
         "constraints": "|a|,|b| <= 10^9",
         "testcases": [{"input": "1 2\n", "output": "3\n"}],
-        "time_limit": "1s",
-        "memory_limit": "128MB"
+        "time_limit": 1.0,
+        "memory_limit": 128
     }
     
     response = client.post("/api/problems/", json=problem_data)
