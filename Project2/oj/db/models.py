@@ -2,10 +2,10 @@ from sqlalchemy import Column, Integer, String, ForeignKey, Float, Time
 # from sqlalchemy.orm import relationship
 from oj.db.database import Base
 
-class User(Base):
+class UserModel(Base):
     __tablename__ = "users"
 
-    user_id = Column(Integer)
+    user_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     username = Column(String)
     password = Column(String)
     role = Column(String)
@@ -34,7 +34,7 @@ class Problem(Base):
 class Eval(Base):
     __tablename__ = "evals"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     submission_id = Column(Integer)
     status = Column(String)
     score = Column(Integer)

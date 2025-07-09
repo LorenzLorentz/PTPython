@@ -1,27 +1,36 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from typing import List
 
 from oj import db
 from oj.db.database import get_db
 from oj.schemas.response import ResponseModel
-from oj.schemas.user import User, UserBrief
+from oj.schemas.user import User, UserAddPayload, UserBrief
+from oj.api.utils.security import verify_password
 
 router = APIRouter()
 
 @router.post("/login", response_model=ResponseModel[UserBrief])
-async def login(username:str, password:str, db_session=Depends(get_db)):
+async def login(request:Request, payload:UserAddPayload, db_session=Depends(get_db)):
     """用户登陆"""
-    db_user = db.db_user.get_user_by_username(username=username)
+    db_user = db.db_user.get_user_by_username(db=db_session, username=payload.username)
 
     if db_user is None:
-        raise HTTPException(status_code=400, detail="用户名或密码错误")
+        raise HTTPException(status_code=400, detail="用户名或密码错误") # 用户不存在
     
-    if db_user.password != password:
-        raise HTTPException(status_code=400, detail="用户名或密码错误")
+    if not verify_password(plain_password=payload.password, hashed_password=db_user.password):
+        raise HTTPException(status_code=400, detail="用户名或密码错误") # 密码错误
     
+    if db_user.role == "banned":
+        raise HTTPException(status_code=403, detail="用户被禁用")
+    
+    request.session["user_id"] = db_user.user_id
+
     return {"msg": "login success", "data": db_user}
 
-@router.post("/logout")
-async def logout(username:str, password:str):
+@router.post("/logout", response_model=ResponseModel[None])
+async def logout(request:Request):
     """用户登出"""
-    pass
+    if "user_id" not in request.session:
+        raise HTTPException(status_code=401, detail="未登录")
+    request.session.pop("user_id")
+    return {"msg": "logout success", "data": None}
