@@ -55,18 +55,9 @@ class UserAddPayload(BaseModel):
     username:str = Field(..., description="用户名")
     password:str = Field(..., description="密码")
 
-    class Config:
-        from_attributes = True
-
 class UserRolePayload(BaseModel):
     role:str = Field(..., description="新权限")
-
-    class Config:
-        from_attributes = True
 
 class UserQueryPayload(BaseModel):
     page:Optional[int] = Field(0, description="页码")
     page_size:Optional[int] = Field(10, description="每页大小")
-
-    class Config:
-        from_attributes = True

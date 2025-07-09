@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Float, Time
-# from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship
 from oj.db.database import Base
 
 class UserModel(Base):
@@ -9,8 +9,13 @@ class UserModel(Base):
     username = Column(String)
     password = Column(String)
     role = Column(String)
+    join_time = Column(Time)
+    submit_count = Column(Integer)
+    resolve_count = Column(Integer)
 
-class Problem(Base):
+    evals = relationship("EvalModel", back_populates="user")
+
+class ProblemModel(Base):
     __tablename__ = "problems"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -31,7 +36,9 @@ class Problem(Base):
     author = Column(String)
     difficulty = Column(String)
 
-class Eval(Base):
+    evals = relationship("EvalModel", back_populates="problem")
+
+class EvalModel(Base):
     __tablename__ = "evals"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
@@ -44,5 +51,8 @@ class Eval(Base):
     action = Column(String)
     time = Column(Time)
 
-    problem_id = Column(Integer, ForeignKey("problems.problem_id"))
+    problem_id = Column(String, ForeignKey("problems.problem_id"))
     user_id = Column(Integer, ForeignKey("users.user_id"))
+
+    user = relationship("UserModel", back_populates="evals")
+    problem = relationship("ProblemModel", back_populates="evals")

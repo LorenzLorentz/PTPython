@@ -5,6 +5,9 @@ class Case(BaseModel):
     input:str
     output:str
 
+    class Config:
+        from_attributes = True
+
 class Problem(BaseModel):
     # 必填字段
     id:str = Field(..., description="题目唯一标识")
@@ -28,9 +31,6 @@ class Problem(BaseModel):
     class Config:
         from_attributes = True
 
-class ProblemAddPayload(Problem):
-    pass
-
 class ProblemID(BaseModel):
     id:str = Field(..., description="题目唯一标识")
     class Config:
@@ -42,3 +42,7 @@ class ProblemBrief(BaseModel):
 
     class Config:
         from_attributes = True
+
+"""payload"""
+class ProblemAddPayload(Problem):
+    pass

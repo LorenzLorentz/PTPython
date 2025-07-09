@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Path
-from typing import List
+from typing import List, Annotated
 
 from oj import db
 from oj.db.database import get_db
@@ -38,7 +38,7 @@ async def get_user(request:Request, user_id:int=Path(..., gt=0), db_session=Depe
     return {"msg": "success", "data": db_user}
 
 @router.put("/{user_id}/role", response_model=ResponseModel[UserRole])
-async def permission_adjust(request:Request, user_id:int, payload:UserRolePayload, db_session=Depends(get_db)):
+async def permission_adjust(request:Request, user_id:Annotated[int, Path(..., gt=0)], payload:UserRolePayload, db_session=Depends(get_db)):
     """用户权限变更"""
     if not check_admin(request=request, db_session=db_session):
         raise HTTPException(status_code=403, detail="权限不足")
