@@ -62,8 +62,7 @@ async def get_user_list(request:Request, payload:UserQueryPayload, db_session=De
         raise HTTPException(status_code=403, detail="权限不足")
     
     result = db.db_user.get_user_list(
-        db=db_session, username=payload.username, role=payload.role, 
-        offset=payload.page*payload.page_size, limit=payload.page_size
+        db=db_session, offset=payload.page*payload.page_size, limit=payload.page_size
     )
     
     return {"msg": "success", "data": result}

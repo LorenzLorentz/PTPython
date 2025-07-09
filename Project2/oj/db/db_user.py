@@ -8,14 +8,8 @@ def get_user(db:Session, user_id:int):
 def get_user_by_username(db:Session, username:str):
     return db.query(UserModel).filter(UserModel.username == username).first()
 
-def get_user_list(db:Session, username:str, role:str, offset:int, limit:int):
+def get_user_list(db:Session, offset:int, limit:int):
     query = db.query(UserModel)
-
-    if username:
-        query = query.filter(UserModel.username.contains(username))
-
-    if role:
-        query = query.filter(UserModel.role == role)
     
     total = query.count()
     users = query.offset(offset).limit(limit).all()
