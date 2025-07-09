@@ -28,7 +28,7 @@ class Problem(BaseModel):
     class Config:
         from_attributes = True
 
-class ProblemAdd(Problem):
+class ProblemAddPayload(Problem):
     pass
 
 class ProblemID(BaseModel):

@@ -3,26 +3,26 @@ from typing import List
 
 from oj import db
 from oj.schemas.response import ResponseModel
-from oj.schemas.problem import Problem, ProblemAdd, ProblemID, ProblemBrief
-from oj.api.permission import check_admin
+from oj.schemas.problem import Problem, ProblemAddPayload, ProblemID, ProblemBrief
+from oj.api.utils.permission import check_admin
 
 router = APIRouter()
 
 @router.get("/", response_model=ResponseModel[List[ProblemBrief]])
-async def get_problems_list(offset:int=0, limit:int=20, db_session=Depends(db.database.get_db)):
+async def get_problems_list(db_session=Depends(db.database.get_db)):
     """查看题目列表"""
-    problem_list = db.db_problem.get_problem_list(db=db_session, offset=offset, limit=limit)
+    problem_list = db.db_problem.get_problem_list(db=db_session)
     
     return {"msg": "success", "data": problem_list}
 
-@router.post("/", response_model=ResponseModel[List[ProblemID]], status_code=200)
-async def add_problem(problem:ProblemAdd, db_session=Depends(db.database.get_db)):
+@router.post("/", response_model=ResponseModel[ProblemID], status_code=200)
+async def add_problem(payload:ProblemAddPayload, db_session=Depends(db.database.get_db)):
     """添加题目"""
-    exist = db.db_problem.get_problem(db=db_session, problem_id=problem.id)
+    exist = db.db_problem.get_problem(db=db_session, problem_id=payload.id)
     if exist:
         raise HTTPException(status_code=409, detail="id 已存在")
 
-    db_problem = db.db_problem.add_problem(db=db_session, problem=problem)
+    db_problem = db.db_problem.add_problem(db=db_session, problem=payload)
     return {"msg": "add success", "data": db_problem}
 
 @router.delete("/{problem_id}", response_model=ResponseModel[List[ProblemID]])
