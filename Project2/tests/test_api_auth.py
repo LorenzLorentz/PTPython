@@ -31,7 +31,7 @@ class TestAuth:
             "password": "testpass"
         })
         client.post("/api/auth/logout")
-        
+
         # Now test user login
         response = client.post("/api/auth/login", json={
             "username": "testuser",
@@ -51,7 +51,8 @@ class TestAuth:
             "password": "password"
         })
         assert response.status_code == 401
-        assert "Invalid username or password" in response.json()["detail"]
+        data = response.json()
+        assert data["code"] == 401
 
     def test_login_invalid_password(self):
         """Test login with invalid password"""
@@ -60,14 +61,15 @@ class TestAuth:
             "password": "wrongpass"
         })
         assert response.status_code == 401
-        assert "Invalid username or password" in response.json()["detail"]
+        data = response.json()
+        assert data["code"] == 401
 
     def test_login_missing_fields(self):
         """Test login with missing fields"""
         response = client.post("/api/auth/login", json={
             "username": "admin"
         })
-        assert response.status_code == 422  # Validation error
+        assert response.status_code == 400  # Parameter error
 
     def test_logout_success(self):
         """Test successful logout"""
@@ -76,7 +78,7 @@ class TestAuth:
             "username": "admin",
             "password": "admin"
         })
-        
+
         # Then logout
         response = client.post("/api/auth/logout")
         assert response.status_code == 200
@@ -89,10 +91,11 @@ class TestAuth:
         """Test logout when not logged in"""
         # Make sure we're not logged in
         client.post("/api/auth/logout")  # Clear any existing session
-        
+
         response = client.post("/api/auth/logout")
         assert response.status_code == 401
-        assert "Not logged in" in response.json()["detail"]
+        data = response.json()
+        assert data["code"] == 401
 
     def test_session_persistence(self):
         """Test that session persists across requests"""
@@ -102,15 +105,15 @@ class TestAuth:
             "password": "admin"
         })
         assert login_response.status_code == 200
-        
+
         # Make an authenticated request (get user info)
         user_response = client.get("/api/users/1")
         assert user_response.status_code == 200
-        
+
         # Logout
         logout_response = client.post("/api/auth/logout")
         assert logout_response.status_code == 200
-        
+
         # Try authenticated request after logout (should fail)
         user_response_after_logout = client.get("/api/users/1")
         assert user_response_after_logout.status_code == 401

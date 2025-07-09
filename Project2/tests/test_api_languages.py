@@ -46,6 +46,8 @@ def test_register_language(client):
     # Test duplicate language name
     response = client.post("/api/languages/", json=language_data)
     assert response.status_code == 400
+    data = response.json()
+    assert data["code"] == 400
     
     # Test missing required fields
     invalid_data = {"name": "invalid_lang"}  # Missing run_cmd

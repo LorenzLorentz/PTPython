@@ -84,11 +84,10 @@ def create_test_problem(client, problem_id=None):
         "input_description": "两个整数",
         "output_description": "它们的和",
         "samples": [{"input": "1 2\n", "output": "3\n"}],
-        "test_cases": [{"input": "1 2\n", "output": "3\n"}],
-        "time_limit": 1.0,
-        "memory_limit": 128,
-        "score": 100,
-        "banned_users": []
+        "constraints": "|a|,|b| <= 10^9",
+        "testcases": [{"input": "1 2\n", "output": "3\n"}],
+        "time_limit": "1s",
+        "memory_limit": "128MB"
     }
     
     response = client.post("/api/problems/", json=problem_data)
