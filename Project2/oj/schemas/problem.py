@@ -10,7 +10,7 @@ class Case(BaseModel):
 
 class Problem(BaseModel):
     # 必填字段
-    id:str = Field(..., description="题目唯一标识")
+    problem_id:str = Field(..., description="题目唯一标识")
     title:str = Field(..., description="题目标题")
     description:str = Field(..., description="题目描述")
     input_description:str = Field(..., description="输入格式说明")
@@ -27,22 +27,31 @@ class Problem(BaseModel):
     memory_limit:int = Field(256, description="内存限制(单位:MB)", example=256)
     author:Optional[str] = Field(None, description="题目作者")
     difficulty:Optional[str] = Field(None, description="难度等级")
+    log_visibility:Optional[bool] = Field(False, description="日志/测例可见性")
 
     class Config:
         from_attributes = True
 
 class ProblemID(BaseModel):
-    id:str = Field(..., description="题目唯一标识")
+    problem_id:str = Field(..., description="题目唯一标识")
     class Config:
         from_attributes = True
 
 class ProblemBrief(BaseModel):
-    id:str = Field(..., description="题目唯一标识")
+    problem_id:str = Field(..., description="题目唯一标识")
     title:str = Field(..., description="题目标题")
 
     class Config:
         from_attributes = True
 
+class ProblemLogVisibility(BaseModel):
+    problem_id:str = Field(..., description="题目唯一标识")
+    public_cases:bool = Field(..., alias="public_cases", description="是否允许所有用户查看测例详情")
+
 """payload"""
 class ProblemAddPayload(Problem):
     pass
+
+class ProblemSetLogVisibilityPayload(BaseModel):
+    problem_id:str = Field(..., description="题目唯一标识")
+    public_cases:bool = Field(..., description="是否允许所有用户查看测例详情")

@@ -97,7 +97,11 @@ async def get_submission_log(request:Request, submission_id:int, db_session=Depe
     if check_admin(request=request, db_session=db_session):
         data = SubmissionLogDetail.from_orm(db_submission)
     else:
-        data = SubmissionLog.from_orm(db_submission)
+        db_problem = db.db_problem.get_problem(db=db_session, problem_id=db_submission.problem_id)
+        if db_problem.log_visibility:
+            data = SubmissionLogDetail.from_orm(db_submission)
+        else:
+            data = SubmissionLog.from_orm(db_submission)
     
     db.db_log.add_log(db=db_session, user_id=user_id, problem_id=db_submission.problem_id, action="view_log", time=datetime.now(),)
 

@@ -23,3 +23,12 @@ def delete_problem(db:Session, problem_id:str):
         db.refresh(db_problem)
         return db_problem
     return None
+
+def set_problem_log_visibility(db:Session, problem_id:str, log_visibility:bool):
+    db_problem = db.query(ProblemModel).filter(ProblemModel.problem_id == problem_id).first()
+    if db_problem:
+        db_problem.log_visibility = log_visibility
+        db.commit()
+        db.refresh(db_problem)
+        return db_problem
+    return None

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Float, Time, JSON
+from sqlalchemy import Column, Integer, String, ForeignKey, Float, Time, JSON, Boolean
 from sqlalchemy.orm import relationship
 from oj.db.database import Base
 
@@ -35,6 +35,7 @@ class ProblemModel(Base):
     memory_limit = Column(String)
     author = Column(String)
     difficulty = Column(String)
+    log_visibility = Column(Boolean)
 
     evals = relationship("EvalModel", back_populates="problem")
 
