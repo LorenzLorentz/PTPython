@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from oj.db.models import UserModel
-from oj.api.utils.security import get_password_hash
+from app.db.models import UserModel
+from app.api.utils.security import get_password_hash
 
 def get_user(db:Session, user_id:int):
     return db.query(UserModel).filter(UserModel.user_id == user_id).first()

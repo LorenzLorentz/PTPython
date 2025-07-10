@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Float, Time, JSON, Boolean
 from sqlalchemy.orm import relationship
-from oj.db.database import Base
+from app.db.database import Base
 
 class UserModel(Base):
     __tablename__ = "users"

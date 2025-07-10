@@ -2,11 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Path
 from typing import List, Annotated, Union
 from datetime import datetime
 
-from oj import db
-from oj.db.database import get_db
-from oj.schemas.submission import SubmissionAddPayload, SubmissionResult, SubmissionStatus, SubmissionQueryPayload, SubmissionList, SubmissionLog, SubmissionLogDetail
-from oj.schemas.response import ResponseModel
-from oj.api.utils.permission import check_admin, check_login, check_banned
+from app import db
+from app.db.database import get_db
+from app.schemas.submission import SubmissionAddPayload, SubmissionResult, SubmissionStatus, SubmissionQueryPayload, SubmissionList, SubmissionLog, SubmissionLogDetail
+from app.schemas.response import ResponseModel
+from app.api.utils.permission import check_admin, check_login, check_banned
 
 router = APIRouter()
 

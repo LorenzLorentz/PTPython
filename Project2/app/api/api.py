@@ -1,10 +1,10 @@
 from fastapi import APIRouter
-from oj.api import problems
-from oj.api import users
-from oj.api import auth
-from oj.api import submissions
-from oj.api import languages
-from oj.api import logs
+from app.api import problems
+from app.api import users
+from app.api import auth
+from app.api import submissions
+from app.api import languages
+from app.api import logs
 
 api_router = APIRouter()
 

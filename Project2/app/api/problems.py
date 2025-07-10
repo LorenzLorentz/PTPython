@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from typing import List
 
-from oj import db
-from oj.db.database import get_db
-from oj.schemas.response import ResponseModel
-from oj.schemas.problem import Problem, ProblemAddPayload, ProblemID, ProblemBrief, ProblemSetLogVisibilityPayload, ProblemLogVisibility
-from oj.api.utils.permission import check_admin, check_login
+from app import db
+from app.db.database import get_db
+from app.schemas.response import ResponseModel
+from app.schemas.problem import Problem, ProblemAddPayload, ProblemID, ProblemBrief, ProblemSetLogVisibilityPayload, ProblemLogVisibility
+from app.api.utils.permission import check_admin, check_login
 
 router = APIRouter()
 

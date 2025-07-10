@@ -1,6 +1,6 @@
 from fastapi import Request
 from sqlalchemy.orm import Session
-from oj import db
+from app import db
 
 def check_admin(request:Request, db_session:Session) -> bool:
     user_id = request.session.get("user_id")

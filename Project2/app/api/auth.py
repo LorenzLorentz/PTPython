@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from typing import List
 
-from oj import db
-from oj.db.database import get_db
-from oj.schemas.response import ResponseModel
-from oj.schemas.user import User, UserAddPayload, UserBrief
-from oj.api.utils.security import verify_password
+from app import db
+from app.db.database import get_db
+from app.schemas.response import ResponseModel
+from app.schemas.user import User, UserAddPayload, UserBrief
+from app.api.utils.security import verify_password
 
 router = APIRouter()
 

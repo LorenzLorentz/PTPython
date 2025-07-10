@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from oj.db.models import LogModel
+from app.db.models import LogModel
 from datetime import datetime
 
 def add_log(db:Session, user_id:int, problem_id:str, action:str, time:datetime):

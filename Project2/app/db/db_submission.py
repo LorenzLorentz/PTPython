@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
-from oj.db.models import SubmissionModel
-from oj.schemas.submission import SubmissionAddPayload
-from oj.schemas.problem import Problem
+from app.db.models import SubmissionModel
+from app.schemas.submission import SubmissionAddPayload
+from app.schemas.problem import Problem
 
 def add_submission(db:Session, submission:SubmissionAddPayload, problem:Problem, user_id:int):
     db_submission = SubmissionModel(user_id=user_id, testcases=problem.testcases, **submission.model_dump())

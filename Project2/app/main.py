@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
-from oj.api.api import api_router
+from app.api.api import api_router
 from starlette.middleware.sessions import SessionMiddleware
 
 app = FastAPI(title="OJ System")
@@ -11,7 +11,7 @@ app.add_middleware(SessionMiddleware, secret_key="PYTHON")
 
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to OJ System API"}
+    return {"message": "Welcome to app System API"}
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):

@@ -2,8 +2,8 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 from datetime import datetime
 
-from oj.schemas.language import Language
-from oj.schemas.problem import Case
+from app.schemas.language import Language
+from app.schemas.problem import Case
 
 class TestCase(BaseModel):
     id:int = Field(..., description="测试点id")

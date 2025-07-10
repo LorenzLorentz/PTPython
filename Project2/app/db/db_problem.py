@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from oj.db.models import ProblemModel
-from oj.schemas.problem import ProblemAddPayload
+from app.db.models import ProblemModel
+from app.schemas.problem import ProblemAddPayload
 
 def get_problem(db:Session, problem_id:str):
     return db.query(ProblemModel).filter(ProblemModel.problem_id == problem_id).first()
