@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Float, Time, JSON, Boolean
 from sqlalchemy.orm import relationship
 from app.db.database import Base
+from sqlalchemy.ext.hybrid import hybrid_property
 
 class UserModel(Base):
     __tablename__ = "users"
@@ -19,7 +20,7 @@ class UserModel(Base):
 class ProblemModel(Base):
     __tablename__ = "problems"
 
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    _id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     problem_id = Column(String)
     title = Column(String)
     description = Column(String)
@@ -41,10 +42,14 @@ class ProblemModel(Base):
     submissions = relationship("SubmissionModel", back_populates="problem")
     logs = relationship("LogModel", back_populates="problem")
 
+    @hybrid_property
+    def id(self):
+        return self.problem_id
+
 class LanguageModel(Base):
     __tablename__ = "languages"
 
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    _id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String)
     file_ext = Column(String)
     compile_cmd = Column(String)
@@ -58,8 +63,8 @@ class LanguageModel(Base):
 class SubmissionModel(Base):
     __tablename__ = "submissions"
 
-    code = Column(String)
     submission_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    code = Column(String)
     status = Column(String)
     score = Column(Integer)
     counts = Column(Integer)
@@ -70,7 +75,7 @@ class SubmissionModel(Base):
 
     problem_id = Column(String, ForeignKey("problems.problem_id"))
     user_id = Column(Integer, ForeignKey("users.user_id"))
-    language_id = Column(Integer, ForeignKey("languages.id"))
+    language_id = Column(Integer, ForeignKey("languages._id"))
 
     user = relationship("UserModel", back_populates="submissions")
     problem = relationship("ProblemModel", back_populates="submissions")
@@ -79,7 +84,7 @@ class SubmissionModel(Base):
 class LogModel(Base):
     __tablename__ = "logs"
 
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    _id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     
     action = Column(String)
     time = Column(Time)

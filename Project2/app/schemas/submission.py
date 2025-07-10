@@ -1,5 +1,5 @@
 from typing import List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
 
 from app.schemas.language import Language
@@ -35,13 +35,19 @@ class SubmissionError(BaseModel):
     submission_id:int = Field(..., description="评测id")
     status:str = Field(..., description="评测状态")
 
+    model_config = ConfigDict(from_attributes=True)
+
 class SubmissionStatus(BaseModel):
     submission_id:int = Field(..., description="评测id")
     status:str = Field(..., description="评测状态")
 
+    model_config = ConfigDict(from_attributes=True)
+
 class SubmissionResult(BaseModel):
     score:int = Field(..., description="得分")
     counts:int = Field(..., description="总分数")
+
+    model_config = ConfigDict(from_attributes=True)
 
 class SubmissionInfo(BaseModel):
     submission_id:int = Field(..., description="评测id")
@@ -49,25 +55,27 @@ class SubmissionInfo(BaseModel):
     score:int = Field(..., description="得分")
     counts:int = Field(..., description="总分数")
 
+    model_config = ConfigDict(from_attributes=True)
+
 class SubmissionList(BaseModel):
     total:int = Field(..., description="总数")
     submissions:List[SubmissionInfo] = Field(..., description="评测列表")
+
+    model_config = ConfigDict(from_attributes=True)
 
 class SubmissionLog(BaseModel):
     test_cases:List[TestCase] = Field(..., alias="status", description="各测试点评测状态")
     score:Optional[int] = Field(..., description="测试点分数")
     counts:Optional[int] = Field(..., description="总分数")
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class SubmissionLogDetail(BaseModel):
     test_cases:List[TestCaseDetail] = Field(..., alias="status", description="各测试点详细评测状态")
     score:Optional[int] = Field(..., description="测试点分数")
     counts:Optional[int] = Field(..., description="总分数")
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 """payload"""
 class SubmissionAddPayload(BaseModel):

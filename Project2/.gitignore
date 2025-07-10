@@ -11,3 +11,5 @@ error/
 error.*
 _git.log
 *.db
+.pytest_cache/
+create_db.py

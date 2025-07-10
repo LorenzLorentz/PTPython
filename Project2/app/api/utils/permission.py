@@ -9,10 +9,7 @@ def check_admin(request:Request, db_session:Session) -> bool:
     if db_user is None:
         return False
     
-    if db_user.role is not "admin":
-        return False
-    
-    return True
+    return db_user.role == "admin"
 
 def check_login(request:Request, db_session:Session) -> bool:
     user_id = request.session.get("user_id")

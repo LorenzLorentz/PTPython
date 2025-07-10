@@ -26,7 +26,7 @@ async def add_problem(payload:ProblemAddPayload, db_session=Depends(get_db)):
     db_problem = db.db_problem.add_problem(db=db_session, problem=payload)
     return {"msg": "add success", "data": db_problem}
 
-@router.delete("/{problem_id}", response_model=ResponseModel[List[ProblemID]])
+@router.delete("/{problem_id}", response_model=ResponseModel[ProblemID])
 async def delete_problem(request:Request, problem_id:str, db_session=Depends(get_db)) -> dict:
     """删除题目"""
     if not check_admin(request=request, db_session=db_session):
@@ -45,7 +45,7 @@ async def get_problem(problem_id:str, db_session=Depends(get_db)) -> dict:
     problem = db.db_problem.get_problem(db=db_session, problem_id=problem_id)
 
     if problem is None:
-        raise HTTPException(status_code="404", detail="题目不存在")
+        raise HTTPException(status_code=404, detail="题目不存在")
 
     return {"msg": "success", "data": problem}
 
