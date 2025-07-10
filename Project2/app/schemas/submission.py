@@ -80,7 +80,7 @@ class SubmissionLogDetail(BaseModel):
 """payload"""
 class SubmissionAddPayload(BaseModel):
     problem_id:str = Field(..., description="题目编号")
-    language:Language = Field(..., description="语言")
+    language_name:str = Field(..., alias="language", description="语言")
     code:str = Field(..., description="用户代码内容")
 
 class SubmissionQueryPayload(BaseModel):

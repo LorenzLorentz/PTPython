@@ -75,7 +75,7 @@ class SubmissionModel(Base):
 
     problem_id = Column(String, ForeignKey("problems.problem_id"))
     user_id = Column(Integer, ForeignKey("users.user_id"))
-    language_id = Column(Integer, ForeignKey("languages._id"))
+    language_name = Column(Integer, ForeignKey("languages.name"))
 
     user = relationship("UserModel", back_populates="submissions")
     problem = relationship("ProblemModel", back_populates="submissions")

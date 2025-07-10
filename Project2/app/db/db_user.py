@@ -13,10 +13,6 @@ def get_user_list(db:Session, offset:int, limit:int):
     
     total = query.count()
     users = query.offset(offset).limit(limit).all()
-
-    with open("error.log", "a") as f:
-        for user in users:
-            print(user.__dict__, file=f)
     
     return {"total": total, "users": users}
 
@@ -25,9 +21,6 @@ def add_user(db:Session, username:str, password:str, role:str):
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
-
-    with open("error.log", "a") as f:
-        print(db_user.__dict__, file=f)
 
     return db_user
 

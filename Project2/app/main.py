@@ -7,8 +7,8 @@ from app.api.utils.exception import APIException
 
 app = FastAPI(title="OJ System")
 
-app.include_router(api_router, prefix="/api")
 app.add_middleware(SessionMiddleware, secret_key="PYTHON")
+app.include_router(api_router, prefix="/api")
 
 @app.get("/")
 def read_root():

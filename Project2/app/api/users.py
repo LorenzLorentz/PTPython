@@ -27,23 +27,26 @@ async def signup(payload:UserAddPayload, db_session=Depends(get_db)):
     return {"msg": "register success", "data": db_user}
 
 @router.post("/admin", response_model=ResponseModel[UserAdmin])
-async def signup_admin(payload:UserAddPayload, db_session=Depends(get_db)):
+async def signup_admin(request:Request, payload:UserAddPayload, db_session=Depends(get_db)):
     """创建管理员账户"""
-    if len(payload.username) < 3 or len(payload.username) > 20:
+    if not check_login(request=request, db_session=db_session):
+        raise APIException(status_code=401, msg="未登录")
+    
+    if not check_admin(request=request, db_session=db_session):
+        raise APIException(status_code=403, msg="用户无权限")
+
+    if len(payload.username) < 3 or len(payload.username) > 40:
         raise APIException(status_code=400, msg="用户名已存在/参数错误") # 用户名长度必须在3到20个字符之间
     
     if len(payload.password) < 6:
         raise APIException(status_code=400, msg="用户名已存在/参数错误") # 密码长度不能少于6个字符
     
-    if not check_admin(request=Request, db_session=db_session):
-        raise APIException(status_code=403, msg="用户无权限")
-    
     db_user = db.db_user.get_user_by_username(db=db_session, username=payload.username)
     if db_user:
         raise APIException(status_code=400, msg="用户名已存在/参数错误") # 用户名已存在
 
-    db_user = db.db_user.add_user(db=db_session, username=payload.username, password=payload.password, role="user")
-    return {"msg": "register success", "data": db_user}
+    db_user = db.db_user.add_user(db=db_session, username=payload.username, password=payload.password, role="admin")
+    return {"msg": "success", "data": db_user}
 
 @router.get("/{user_id}", response_model=ResponseModel[UserInfo])
 async def get_user(request:Request, user_id:int, db_session=Depends(get_db)):
