@@ -3,12 +3,18 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 
 from oj.schemas.language import Language
+from oj.schemas.problem import Case
 
-class Status(BaseModel):
+class TestCase(BaseModel):
     id:int = Field(..., description="测试点id")
     result:str = Field(..., description="测试点结果")
     time:float = Field(..., description="测试点用时")
     memory:int = Field(..., description="测试点内存占用")
+
+class TestCaseDetail(TestCase):
+    case:Case = Field(..., description="测试用例")
+    output:str = Field(..., description="预期输出")
+    err_msg:str = Field(..., description="错误信息")
 
 class Submission(BaseModel):
     problem_id:str = Field(..., description="题目编号")
@@ -17,13 +23,13 @@ class Submission(BaseModel):
     user_id:int = Field(..., decimal_places="用户id")
     submission_id:int = Field(..., description="评测id")
     
-    status:str = Field(..., description="评测状态")
-    status_detail:List[Status] = Field(..., description="各测试点评测状态")
-    
+    status:str = Field(..., description="评测状态")    
     score:Optional[int] = Field(..., description="测试点分数")
     counts:Optional[int] = Field(..., description="总分数")
     time:Optional[float] = Field(..., description="用时")
     memory:Optional[int] = Field(..., description="内存占用")
+
+    test_cases:List[TestCaseDetail] = Field(..., description="各测试点评测状态")
 
 class SubmissionError(BaseModel):
     submission_id:int = Field(..., description="评测id")
@@ -46,6 +52,22 @@ class SubmissionInfo(BaseModel):
 class SubmissionList(BaseModel):
     total:int = Field(..., description="总数")
     submissions:List[SubmissionInfo] = Field(..., description="评测列表")
+
+class SubmissionLog(BaseModel):
+    test_cases:List[TestCase] = Field(..., alias="status", description="各测试点评测状态")
+    score:Optional[int] = Field(..., description="测试点分数")
+    counts:Optional[int] = Field(..., description="总分数")
+
+    class Config:
+        from_attributes = True
+
+class SubmissionLogDetail(BaseModel):
+    test_cases:List[TestCaseDetail] = Field(..., alias="status", description="各测试点详细评测状态")
+    score:Optional[int] = Field(..., description="测试点分数")
+    counts:Optional[int] = Field(..., description="总分数")
+
+    class Config:
+        from_attributes = True
 
 """payload"""
 class SubmissionAddPayload(BaseModel):

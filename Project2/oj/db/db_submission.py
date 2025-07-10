@@ -1,10 +1,10 @@
 from sqlalchemy.orm import Session
 from oj.db.models import SubmissionModel
 from oj.schemas.submission import SubmissionAddPayload
-from oj.api.utils.security import get_password_hash
+from oj.schemas.problem import Problem
 
-def add_submission(db:Session, submission:SubmissionAddPayload, user_id:int):
-    db_submission = SubmissionModel(**submission.model_dump(), user_id=user_id)
+def add_submission(db:Session, submission:SubmissionAddPayload, problem:Problem, user_id:int):
+    db_submission = SubmissionModel(user_id=user_id, testcases=problem.testcases, **submission.model_dump())
     db.add(db_submission)
     db.commit()
     db.refresh(db_submission)

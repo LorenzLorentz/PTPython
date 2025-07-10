@@ -55,14 +55,21 @@ class SubmissionModel(Base):
     
     submission_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     status = Column(String)
-    status_detail = Column(JSON)
     score = Column(Integer)
     counts = Column(Integer)
     time = Column(Float)
     memory = Column(Integer)
+
+    testcases = Column(JSON)
 
     problem_id = Column(String, ForeignKey("problems.problem_id"))
     user_id = Column(Integer, ForeignKey("users.user_id"))
 
     user = relationship("UserModel", back_populates="evals")
     problem = relationship("ProblemModel", back_populates="evals")
+
+class LogModel(Base):
+    user_id = Column(Integer)
+    problem_id = Column(String)
+    action = Column(String)
+    time = Column(Time)
