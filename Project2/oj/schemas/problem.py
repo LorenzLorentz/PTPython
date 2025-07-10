@@ -33,12 +33,12 @@ class Problem(BaseModel):
         from_attributes = True
 
 class ProblemID(BaseModel):
-    problem_id:str = Field(..., description="题目唯一标识")
+    problem_id:str = Field(..., alias="id", description="题目唯一标识")
     class Config:
         from_attributes = True
 
 class ProblemBrief(BaseModel):
-    problem_id:str = Field(..., description="题目唯一标识")
+    problem_id:str = Field(..., alias="id", description="题目唯一标识")
     title:str = Field(..., description="题目标题")
 
     class Config:

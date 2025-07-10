@@ -71,7 +71,7 @@ async def rejudge(request:Request, submission_id:int, db_session=Depends(get_db)
     if not check_admin(request=request, db_session=db_session):
         raise HTTPException(status_code=403, detail="权限不足")
 
-    db_submission = db.db_submission.reset_submission(db=db_session)
+    db_submission = db.db_submission.reset_submission(db=db_session, submission_id=submission_id)
     if db_submission is None:
         raise HTTPException(status_code=404, detail="评测不存在")
     

@@ -10,3 +10,4 @@ temp/
 error/
 error.*
 _git.log
+*.db

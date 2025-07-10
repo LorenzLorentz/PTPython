@@ -19,7 +19,7 @@ async def get_problems_list(db_session=Depends(get_db)):
 @router.post("/", response_model=ResponseModel[ProblemID], status_code=200)
 async def add_problem(payload:ProblemAddPayload, db_session=Depends(get_db)):
     """添加题目"""
-    exist = db.db_problem.get_problem(db=db_session, problem_id=payload.id)
+    exist = db.db_problem.get_problem(db=db_session, problem_id=payload.problem_id)
     if exist:
         raise HTTPException(status_code=409, detail="id 已存在")
 
@@ -27,7 +27,7 @@ async def add_problem(payload:ProblemAddPayload, db_session=Depends(get_db)):
     return {"msg": "add success", "data": db_problem}
 
 @router.delete("/{problem_id}", response_model=ResponseModel[List[ProblemID]])
-async def delete_problem(request:Request, problem_id:int, db_session=Depends(get_db)) -> dict:
+async def delete_problem(request:Request, problem_id:str, db_session=Depends(get_db)) -> dict:
     """删除题目"""
     if not check_admin(request=request, db_session=db_session):
         raise HTTPException(status_code=403, detail="权限不足")
@@ -40,7 +40,7 @@ async def delete_problem(request:Request, problem_id:int, db_session=Depends(get
     return {"msg": "delete success", "data": db_problem}
 
 @router.get("/{problem_id}", response_model=ResponseModel[Problem])
-async def get_problem(problem_id:int, db_session=Depends(get_db)) -> dict:
+async def get_problem(problem_id:str, db_session=Depends(get_db)) -> dict:
     """查看题目信息"""
     problem = db.db_problem.get_problem(db=db_session, problem_id=problem_id)
 
