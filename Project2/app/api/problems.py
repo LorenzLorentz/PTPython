@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Request
 from typing import List
 
 from app import db
@@ -6,6 +6,7 @@ from app.db.database import get_db
 from app.schemas.response import ResponseModel
 from app.schemas.problem import Problem, ProblemAddPayload, ProblemID, ProblemBrief, ProblemSetLogVisibilityPayload, ProblemLogVisibility
 from app.api.utils.permission import check_admin, check_login
+from app.api.utils.exception import APIException
 
 router = APIRouter()
 
@@ -21,7 +22,7 @@ async def add_problem(payload:ProblemAddPayload, db_session=Depends(get_db)):
     """添加题目"""
     exist = db.db_problem.get_problem(db=db_session, problem_id=payload.problem_id)
     if exist:
-        raise HTTPException(status_code=409, detail="id 已存在")
+        raise APIException(status_code=409, msg="id 已存在")
 
     db_problem = db.db_problem.add_problem(db=db_session, problem=payload)
     return {"msg": "add success", "data": db_problem}
@@ -30,12 +31,12 @@ async def add_problem(payload:ProblemAddPayload, db_session=Depends(get_db)):
 async def delete_problem(request:Request, problem_id:str, db_session=Depends(get_db)) -> dict:
     """删除题目"""
     if not check_admin(request=request, db_session=db_session):
-        raise HTTPException(status_code=403, detail="权限不足")
+        raise APIException(status_code=403, msg="权限不足")
 
     db_problem = db.db_problem.delete_problem(db=db_session, problem_id=problem_id)
     
     if db_problem is None:
-        raise HTTPException(status_code=404, detail="题目不存在")
+        raise APIException(status_code=404, msg="题目不存在")
     
     return {"msg": "delete success", "data": db_problem}
 
@@ -45,7 +46,7 @@ async def get_problem(problem_id:str, db_session=Depends(get_db)) -> dict:
     problem = db.db_problem.get_problem(db=db_session, problem_id=problem_id)
 
     if problem is None:
-        raise HTTPException(status_code=404, detail="题目不存在")
+        raise APIException(status_code=404, msg="题目不存在")
 
     return {"msg": "success", "data": problem}
 
@@ -53,13 +54,13 @@ async def get_problem(problem_id:str, db_session=Depends(get_db)) -> dict:
 async def set_log_visibility(request:Request, problem_id:str, payload:ProblemSetLogVisibilityPayload, db_session=Depends(get_db)):
     """配置日志/测例可见性"""
     if not check_login(request=request, db_session=db_session):
-        raise HTTPException(status_code=401, detail="用户未登录")
+        raise APIException(status_code=401, msg="用户未登录")
 
     if not check_admin(request=request, db_session=db_session):
-        raise HTTPException(status_code=403, detail="用户无权限")
+        raise APIException(status_code=403, msg="用户无权限")
     
     db_problem = db.db_problem.set_problem_log_visibility(db=db_session, problem_id=problem_id, log_visibility=payload.public_cases)
     if db_problem is None:
-        raise HTTPException(status_code=404, detail="题目不存在")
+        raise APIException(status_code=404, msg="题目不存在")
     
     return db_problem

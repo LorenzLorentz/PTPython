@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, Path
+from fastapi import APIRouter, Depends, Request, Path
 from typing import List, Annotated
 
 from app import db
@@ -6,6 +6,7 @@ from app.db.database import get_db
 from app.schemas.language import LanguageInfo, LanguageAddPayload
 from app.schemas.response import ResponseModel
 from app.api.utils.permission import check_admin
+from app.api.utils.exception import APIException
 
 router = APIRouter()
 
@@ -13,7 +14,7 @@ router = APIRouter()
 async def add_language(request:Request, payload:LanguageAddPayload, db_session=Depends(get_db)):
     """动态注册新语言"""
     if not check_admin(request=request, db_session=db_session):
-        raise HTTPException(status_code=403, detail="用户无权限")
+        raise APIException(status_code=403, msg="用户无权限")
 
     db_language = db.db_language.add_language(db=db_session, language=payload)
     return {"msg": "language registered", "data": db_language}

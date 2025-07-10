@@ -1,19 +1,23 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, Path
+from fastapi import APIRouter, Depends, Request, Path
 from typing import List, Annotated
 
 from app import db
 from app.db.database import get_db
 from app.schemas.log import Log, LogQueryPayload
 from app.schemas.response import ResponseModel
-from app.api.utils.permission import check_admin
+from app.api.utils.permission import check_admin, check_login
+from app.api.utils.exception import APIException
 
 router = APIRouter()
 
 @router.get("/access", response_model=ResponseModel[Log])
 async def get_access_log_list(request:Request, payload:LogQueryPayload, db_session=Depends(get_db)):
     """日志访问审计"""
+    if not check_login(request=request, db_session=db_session):
+        raise APIException(status_code=401, msg="用户未登录")
+    
     if not check_admin(request=request, db_session=db_session):
-        raise HTTPException(status_code=403, detail="用户无权限")
+        raise APIException(status_code=403, msg="用户无权限")
     
     db_log_list = db.db_log.get_log_list(
         db=db_session, user_id=payload.user_id, problem_id=payload.problem_id,
