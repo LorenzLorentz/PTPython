@@ -13,12 +13,13 @@ class UserModel(Base):
     submit_count = Column(Integer)
     resolve_count = Column(Integer)
 
-    evals = relationship("EvalModel", back_populates="user")
+    submissions = relationship("SubmissionModel", back_populates="user")
+    logs = relationship("LogModel", back_populates="user")
 
 class ProblemModel(Base):
     __tablename__ = "problems"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     problem_id = Column(String)
     title = Column(String)
     description = Column(String)
@@ -37,9 +38,13 @@ class ProblemModel(Base):
     difficulty = Column(String)
     log_visibility = Column(Boolean)
 
-    evals = relationship("EvalModel", back_populates="problem")
+    submissions = relationship("SubmissionModel", back_populates="problem")
+    logs = relationship("LogModel", back_populates="problem")
 
 class LanguageModel(Base):
+    __tablename__ = "languages"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String)
     file_ext = Column(String)
     compile_cmd = Column(String)
@@ -48,12 +53,12 @@ class LanguageModel(Base):
     time_limit = Column(Float)
     memory_limit = Column(Integer)
 
-class SubmissionModel(Base):
-    __tablename__ = "evals"
+    submissions = relationship("SubmissionModel", back_populates="language")
 
-    language = Column(LanguageModel)
+class SubmissionModel(Base):
+    __tablename__ = "submissions"
+
     code = Column(String)
-    
     submission_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     status = Column(String)
     score = Column(Integer)
@@ -65,12 +70,22 @@ class SubmissionModel(Base):
 
     problem_id = Column(String, ForeignKey("problems.problem_id"))
     user_id = Column(Integer, ForeignKey("users.user_id"))
+    language_id = Column(LanguageModel, ForeignKey("languages.id"))
 
-    user = relationship("UserModel", back_populates="evals")
-    problem = relationship("ProblemModel", back_populates="evals")
+    user = relationship("UserModel", back_populates="submissions")
+    problem = relationship("ProblemModel", back_populates="submussions")
+    language = relationship("LanguageModel", back_populates="submissions")
 
 class LogModel(Base):
-    user_id = Column(Integer)
-    problem_id = Column(String)
+    __tablename__ = "logs"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    
     action = Column(String)
     time = Column(Time)
+
+    user_id = Column(Integer, ForeignKey("users.user_id"))
+    problem_id = Column(String, ForeignKey("problems.problem_id"))
+
+    user = relationship("UserModel", back_populates="logs")
+    problem = relationship("ProblemModel", back_populates="logs")

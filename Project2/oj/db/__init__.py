@@ -1,7 +1,7 @@
-import models
-import database
-import db_problem
-import db_user
-import db_submission
-import db_language
-import db_log
+import oj.db.models
+import oj.db.database
+import oj.db.db_problem
+import oj.db.db_user
+import oj.db.db_submission
+import oj.db.db_language
+import oj.db.db_log
