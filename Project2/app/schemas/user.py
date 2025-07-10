@@ -7,23 +7,33 @@ class User(BaseModel):
     username:str = Field(..., description="用户名")
     password:str = Field(..., description="密码")
     role:str = Field(..., description="权限")
-    join_time:datetime = Field(datetime.now(), description="加入时间")
-    submit_count:int = Field(0, description="提交次数")
-    resolve_count:int = Field(0, description="解决问题数")
+    join_time:datetime = Field(..., description="加入时间")
+    submit_count:int = Field(..., description="提交次数")
+    resolve_count:int = Field(..., description="解决问题数")
 
     model_config = ConfigDict(from_attributes=True)
 
-class UserBrief(BaseModel):
+"""Response"""
+class UserAdmin(BaseModel):
     user_id:int = Field(..., description="用户id")
     username:str = Field(..., description="用户名")
     
     model_config = ConfigDict(from_attributes=True)
 
+class UserBrief(BaseModel):
+    user_id:int = Field(..., description="用户id")
+    username:str = Field(..., description="用户名")
+    role:str = Field(..., description="权限")
+    
+    model_config = ConfigDict(from_attributes=True)
+
 class UserInfo(BaseModel):
     user_id:int = Field(..., description="用户id")
-    join_time:datetime = Field(datetime.now(), description="加入时间")
-    submit_count:int = Field(0, description="提交次数")
-    resolve_count:int = Field(0, description="解决问题数")
+    username:str = Field(..., description="用户名")
+    join_time:datetime = Field(..., description="加入时间")
+    role:str = Field(..., description="权限")
+    submit_count:int = Field(..., description="提交次数")
+    resolve_count:int = Field(..., description="解决问题数")
 
     model_config = ConfigDict(from_attributes=True)
 

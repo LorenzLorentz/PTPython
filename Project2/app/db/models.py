@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Float, Time, JSON, Boolean
+from sqlalchemy import Column, Integer, String, ForeignKey, Float, DateTime, JSON, Boolean, func
 from sqlalchemy.orm import relationship
 from app.db.database import Base
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -7,12 +7,12 @@ class UserModel(Base):
     __tablename__ = "users"
 
     user_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    username = Column(String)
-    password = Column(String)
-    role = Column(String)
-    join_time = Column(Time)
-    submit_count = Column(Integer)
-    resolve_count = Column(Integer)
+    username = Column(String, nullable=False)
+    password = Column(String, nullable=False)
+    role = Column(String, nullable=False)
+    join_time = Column(DateTime, server_default=func.now(), nullable=False)
+    submit_count = Column(Integer, server_default='0', nullable=False)
+    resolve_count = Column(Integer, server_default='0', nullable=False)
 
     submissions = relationship("SubmissionModel", back_populates="user")
     logs = relationship("LogModel", back_populates="user")
@@ -21,23 +21,23 @@ class ProblemModel(Base):
     __tablename__ = "problems"
 
     _id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    problem_id = Column(String)
-    title = Column(String)
-    description = Column(String)
-    input_description = Column(String)
-    output_description = Column(String)
-    samples = Column(JSON)
-    constraints = Column(String)
-    testcases = Column(JSON)
+    problem_id = Column(String, nullable=False)
+    title = Column(String, nullable=False)
+    description = Column(String, nullable=False)
+    input_description = Column(String, nullable=False)
+    output_description = Column(String, nullable=False)
+    samples = Column(JSON, nullable=False)
+    constraints = Column(String, nullable=False)
+    testcases = Column(JSON, nullable=False)
     
-    hint = Column(String)
-    source = Column(String)
-    tags = Column(JSON)
-    time_limit = Column(String)
-    memory_limit = Column(String)
-    author = Column(String)
-    difficulty = Column(String)
-    log_visibility = Column(Boolean)
+    hint = Column(String, nullable=True)
+    source = Column(String, nullable=True)
+    tags = Column(JSON, nullable=True)
+    time_limit = Column(String, nullable=True)
+    memory_limit = Column(String, nullable=True)
+    author = Column(String, nullable=True)
+    difficulty = Column(String, nullable=True)
+    log_visibility = Column(Boolean, nullable=False)
 
     submissions = relationship("SubmissionModel", back_populates="problem")
     logs = relationship("LogModel", back_populates="problem")
@@ -87,7 +87,7 @@ class LogModel(Base):
     _id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     
     action = Column(String)
-    time = Column(Time)
+    time = Column(DateTime)
 
     user_id = Column(Integer, ForeignKey("users.user_id"))
     problem_id = Column(String, ForeignKey("problems.problem_id"))
