@@ -35,13 +35,13 @@ pip install -r requirements.txt
 ### 2. 运行所有测试
 ```bash
 # 运行全部测试
-pytest tests/ -v
+python -m pytest tests/ -v
 
 # 运行指定模块测试
-pytest tests/test_api_problems.py -v
+python -m pytest tests/test_api_problems.py -v
 
 # 运行单个测试
-pytest tests/test_api_problems.py::test_add_problem -v
+python -m pytest tests/test_api_problems.py::test_add_problem -v
 ```
 
 ### 3. 测试输出说明
