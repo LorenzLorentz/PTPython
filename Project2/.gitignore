@@ -1,0 +1,12 @@
+__pycacge__/
+*.pyc
+*.out
+*.jpg
+*.json
+temp.*
+test.*
+temp/
+*.csv
+error/
+error.*
+_git.log
