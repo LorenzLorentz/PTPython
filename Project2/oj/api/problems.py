@@ -47,3 +47,8 @@ async def get_problem(problem_id:int, db_session=Depends(db.database.get_db)) ->
         raise HTTPException(status_code="404", detail="题目不存在")
 
     return {"msg": "success", "data": problem}
+
+@router.put("/{problem_id}/log_visibility")
+async def set_testcases_visibility():
+    """配置日志/测例可见性"""
+    pass

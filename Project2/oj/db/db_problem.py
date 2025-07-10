@@ -20,5 +20,6 @@ def delete_problem(db:Session, problem_id:str):
     if db_problem:
         db.delete(db_problem)
         db.commit()
+        db.refresh(db_problem)
         return db_problem
     return None

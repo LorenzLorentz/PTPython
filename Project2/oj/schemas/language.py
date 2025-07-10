@@ -1,0 +1,21 @@
+from typing import List, Optional
+from pydantic import BaseModel, Field
+from datetime import datetime
+
+class Language(BaseModel):
+    name:str = Field(..., description="语言名称")
+    file_ext:str = Field(..., description="代码文件拓展名")
+
+    compile_cmd:str = Field(None, description="编译命令")
+    run_cmd:str = Field(..., description="运行命令")
+    source_template:str = Field(..., description="代码运行模板")
+
+    time_limit:float = Field(1.0, description="时间限制(默认单位为's')")
+    memory_limit:int = Field(256, description="空间限制(默认单位为'MB)")
+
+class LanguageInfo(BaseModel):
+    name:str = Field(..., description="语言名称")
+
+"""Payload"""
+class LanguageAddPayload(Language):
+    pass
