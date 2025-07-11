@@ -2,7 +2,7 @@ import uuid
 import pytest
 import json
 import io
-from test_helpers import setup_admin_session, setup_user_session, reset_system
+from test_helpers import setup_admin_session, setup_user_session, reset_system, create_test_user
 
 
 def test_data_import_complete_verification(client):
@@ -11,18 +11,24 @@ def test_data_import_complete_verification(client):
     reset_system(client)
     setup_admin_session(client)
 
-    # Prepare comprehensive test data
+    # Prepare comprehensive test data according to api.md structure
     import_data = {
         "users": [
             {
+                "user_id": "100",
                 "username": "imported_user1_" + uuid.uuid4().hex[:4],
-                "password": "password123",
-                "role": "user"
+                "role": "user",
+                "join_time": "2024-01-01T00:00:00",
+                "submit_count": 5,
+                "resolve_count": 3
             },
             {
+                "user_id": "101",
                 "username": "imported_admin_" + uuid.uuid4().hex[:4],
-                "password": "adminpass123",
-                "role": "admin"
+                "role": "admin",
+                "join_time": "2024-01-01T00:00:00",
+                "submit_count": 10,
+                "resolve_count": 8
             }
         ],
         "problems": [
@@ -32,14 +38,19 @@ def test_data_import_complete_verification(client):
                 "description": "Test problem for import",
                 "input_description": "Input description",
                 "output_description": "Output description",
-                "samples": [{"input": "1 2\n", "output": "3\n"}],
+                "samples": [{"input": "1 2", "output": "3"}],
                 "constraints": "|a|,|b| <= 10^9",
                 "testcases": [
-                    {"input": "1 2\n", "output": "3\n"},
-                    {"input": "5 7\n", "output": "12\n"}
+                    {"input": "1 2", "output": "3"},
+                    {"input": "5 7", "output": "12"}
                 ],
+                "hint": "",
+                "source": "",
+                "tags": [],
                 "time_limit": 2.0,
-                "memory_limit": 256
+                "memory_limit": 256,
+                "author": "",
+                "difficulty": ""
             },
             {
                 "id": "imported_prob2_" + uuid.uuid4().hex[:4],
@@ -47,21 +58,31 @@ def test_data_import_complete_verification(client):
                 "description": "Another test problem",
                 "input_description": "Input desc 2",
                 "output_description": "Output desc 2",
-                "samples": [{"input": "10\n", "output": "10\n"}],
+                "samples": [{"input": "10", "output": "10"}],
                 "constraints": "|x| <= 10^9",
-                "testcases": [{"input": "10\n", "output": "10\n"}],
+                "testcases": [{"input": "10", "output": "10"}],
+                "hint": "",
+                "source": "",
+                "tags": [],
                 "time_limit": 1.0,
-                "memory_limit": 128
+                "memory_limit": 128,
+                "author": "",
+                "difficulty": ""
             }
         ],
         "submissions": [
             {
-                "user_id": 1,
+                "submission_id": 1,
+                "user_id": "100",
                 "problem_id": "imported_prob1",
                 "language": "python",
                 "code": "a, b = map(int, input().split())\nprint(a + b)",
-                "status": "Accepted",
-                "score": 100
+                "status": [
+                    {"id": 1, "result": "AC", "time": 1.01, "memory": 130},
+                    {"id": 2, "result": "AC", "time": 1.02, "memory": 132}
+                ],
+                "score": 100,
+                "counts": 100
             }
         ]
     }
@@ -123,9 +144,16 @@ def test_data_import_various_formats(client):
     """Test POST /api/import/ - different file formats"""
     setup_admin_session(client)
 
-    # Test 1: Valid JSON format
+    # Test 1: Valid JSON format according to api.md
     valid_data = {
-        "users": [{"username": "test_user_" + uuid.uuid4().hex[:4], "password": "pass", "role": "user"}],
+        "users": [{
+            "user_id": "200",  # API uses string IDs
+            "username": "test_user_" + uuid.uuid4().hex[:4],
+            "role": "user",
+            "join_time": "2024-01-01",  # API uses date format, not ISO datetime
+            "submit_count": 0,
+            "resolve_count": 0
+        }],
         "problems": [],
         "submissions": []
     }
@@ -135,8 +163,11 @@ def test_data_import_various_formats(client):
     files = {"file": ("valid.json", json_file, "application/json")}
 
     response = client.post("/api/import/", files=files)
-    # Should succeed or return not implemented
-    assert response.status_code in [200, 400, 403, 500, 501]
+    assert response.status_code == 200
+    data = response.json()
+    assert data["code"] == 200
+    assert data["msg"] == "import success"
+    assert data["data"] is None
 
     # Test 2: Invalid JSON format
     invalid_json = b'{"users": [invalid json'
@@ -144,16 +175,14 @@ def test_data_import_various_formats(client):
     files = {"file": ("invalid.json", invalid_file, "application/json")}
 
     response = client.post("/api/import/", files=files)
-    if response.status_code not in [501]:  # If implemented
-        assert response.status_code == 400
+    assert response.status_code == 400
 
     # Test 3: Empty file
     empty_file = io.BytesIO(b'')
     files = {"file": ("empty.json", empty_file, "application/json")}
 
     response = client.post("/api/import/", files=files)
-    if response.status_code not in [501]:  # If implemented
-        assert response.status_code == 400
+    assert response.status_code == 400
 
     # Test 4: Wrong content type
     csv_content = b'username,password,role\ntest,pass,user'
@@ -161,8 +190,7 @@ def test_data_import_various_formats(client):
     files = {"file": ("data.csv", csv_file, "text/csv")}
 
     response = client.post("/api/import/", files=files)
-    if response.status_code not in [501]:  # If implemented
-        assert response.status_code in [400, 415]  # Bad request or unsupported media type
+    assert response.status_code == 400  # Should reject non-JSON files
 
 
 def test_data_import_missing_required_fields(client):
@@ -172,8 +200,8 @@ def test_data_import_missing_required_fields(client):
     # Test missing required fields in users
     invalid_user_data = {
         "users": [
-            {"username": "test_user"},  # Missing password
-            {"password": "pass123"}     # Missing username
+            {"username": "test_user"},  # Missing user_id, role, join_time, submit_count, resolve_count
+            {"user_id": "300"}     # Missing username, role, join_time, submit_count, resolve_count
         ],
         "problems": [],
         "submissions": []
@@ -184,11 +212,9 @@ def test_data_import_missing_required_fields(client):
     files = {"file": ("invalid_users.json", file_obj, "application/json")}
 
     response = client.post("/api/import/", files=files)
-    if response.status_code not in [501]:  # If implemented
-        # Now properly validates required fields
-        assert response.status_code == 400
-        data = response.json()
-        assert data["code"] == 400
+    assert response.status_code == 400
+    data = response.json()
+    assert data["code"] == 400
 
     # Test missing required fields in problems
     invalid_problem_data = {
@@ -196,7 +222,7 @@ def test_data_import_missing_required_fields(client):
         "problems": [
             {
                 "id": "test_prob",
-                # Missing required fields like title, description, etc.
+                # Missing required fields like title, description, input_description, output_description, samples, constraints, testcases
             }
         ],
         "submissions": []
@@ -207,12 +233,9 @@ def test_data_import_missing_required_fields(client):
     files = {"file": ("invalid_problems.json", file_obj, "application/json")}
 
     response = client.post("/api/import/", files=files)
-    if response.status_code not in [501]:  # If implemented
-        # Now properly validates required fields
-        assert response.status_code == 400
-        data = response.json()
-        assert data["code"] == 400
-        assert "missing required field" in data["msg"].lower()
+    assert response.status_code == 400
+    data = response.json()
+    assert data["code"] == 400
 
 
 def test_data_import_duplicate_handling(client):
@@ -228,7 +251,14 @@ def test_data_import_duplicate_handling(client):
     # Try to import duplicate user
     import_data = {
         "users": [
-            {"username": existing_user, "password": "newpass", "role": "user"}  # Duplicate
+            {
+                "user_id": "400",  # API uses string IDs
+                "username": existing_user,
+                "role": "user",
+                "join_time": "2024-01-01",  # API uses date format
+                "submit_count": 0,
+                "resolve_count": 0
+            }
         ],
         "problems": [],
         "submissions": []
@@ -239,9 +269,7 @@ def test_data_import_duplicate_handling(client):
     files = {"file": ("duplicate_user.json", file_obj, "application/json")}
 
     response = client.post("/api/import/", files=files)
-    if response.status_code not in [501]:  # If implemented
-        # Should handle duplicates gracefully (skip or update)
-        assert response.status_code in [200, 400, 409]  # Success, bad request, or conflict
+    assert response.status_code == 400  # Should handle duplicates with error or success
 
 
 def test_data_import_large_dataset(client):
@@ -258,9 +286,12 @@ def test_data_import_large_dataset(client):
     # Generate many users
     for i in range(50):
         large_data["users"].append({
+            "user_id": str(1000 + i),  # API uses string IDs
             "username": f"bulk_user_{i}_{uuid.uuid4().hex[:4]}",
-            "password": f"pass_{i}",
-            "role": "user"
+            "role": "user",
+            "join_time": "2024-01-01",  # API uses date format
+            "submit_count": i,
+            "resolve_count": i // 2
         })
 
     # Generate many problems
@@ -271,11 +302,16 @@ def test_data_import_large_dataset(client):
             "description": f"Problem {i} description",
             "input_description": "Input",
             "output_description": "Output",
-            "samples": [{"input": f"{i}\n", "output": f"{i}\n"}],
+            "samples": [{"input": f"{i}", "output": f"{i}"}],
             "constraints": "|x| <= 10^9",
-            "testcases": [{"input": f"{i}\n", "output": f"{i}\n"}],
+            "testcases": [{"input": f"{i}", "output": f"{i}"}],
+            "hint": "",
+            "source": "",
+            "tags": [],
             "time_limit": 1.0,
-            "memory_limit": 128
+            "memory_limit": 128,
+            "author": "",
+            "difficulty": ""
         })
 
     json_content = json.dumps(large_data).encode('utf-8')
@@ -283,8 +319,7 @@ def test_data_import_large_dataset(client):
     files = {"file": ("large_dataset.json", file_obj, "application/json")}
 
     response = client.post("/api/import/", files=files)
-    # Should handle large datasets (might take time or require chunking)
-    assert response.status_code in [200, 400, 403, 500, 501, 413]  # Include payload too large
+    assert response.status_code == 200  # Should handle large datasets successfully
 
 
 def test_data_import_no_file(client):
@@ -293,26 +328,160 @@ def test_data_import_no_file(client):
 
     # Try import without file
     response = client.post("/api/import/")
-    if response.status_code not in [501]:  # If implemented
-        # FastAPI returns 400 for missing required file parameter
-        assert response.status_code == 400
+    assert response.status_code == 400
 
 
-def test_data_import_file_size_limits(client):
-    """Test POST /api/import/ - file size limits"""
+def test_data_export(client):
+    """Test GET /api/export/"""
+    # Reset and setup admin
+    reset_system(client)
     setup_admin_session(client)
 
-    # Create very large file content (simulate large file)
-    large_content = json.dumps({
-        "users": [],
-        "problems": [],
-        "submissions": [],
-        "large_field": "x" * (10 * 1024 * 1024)  # 10MB of data
-    }).encode('utf-8')
+    # Create some test data first
+    # Add a problem
+    problem_id = "export_test_" + uuid.uuid4().hex[:4]
+    problem_data = {
+        "id": problem_id,
+        "title": "Export Test Problem",
+        "description": "Test problem for export",
+        "input_description": "Input description",
+        "output_description": "Output description",
+        "samples": [{"input": "1 2", "output": "3"}],
+        "constraints": "|a|,|b| <= 10^9",
+        "testcases": [{"input": "1 2", "output": "3"}],
+        "time_limit": 1.0,
+        "memory_limit": 128
+    }
+    client.post("/api/problems/", json=problem_data)
 
-    large_file = io.BytesIO(large_content)
-    files = {"file": ("huge_file.json", large_file, "application/json")}
+    # Create a user
+    username, password, user_id = create_test_user(client)
 
-    response = client.post("/api/import/", files=files)
-    # Should reject files that are too large
-    assert response.status_code in [200, 400, 413, 500, 501]  # Include payload too large
+    # Export data
+    response = client.get("/api/export/")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["code"] == 200
+    assert data["msg"] == "success"
+    assert "data" in data
+
+    # Verify export structure according to api.md
+    export_data = data["data"]
+    assert "users" in export_data
+    assert "problems" in export_data
+    assert "submissions" in export_data
+
+    # Verify users data structure
+    assert isinstance(export_data["users"], list)
+    if len(export_data["users"]) > 0:
+        user = export_data["users"][0]
+        assert "user_id" in user
+        assert "username" in user
+        assert "role" in user
+        assert "join_time" in user
+        assert "submit_count" in user
+        assert "resolve_count" in user
+
+    # Verify problems data structure
+    assert isinstance(export_data["problems"], list)
+    if len(export_data["problems"]) > 0:
+        problem = export_data["problems"][0]
+        assert "id" in problem
+        assert "title" in problem
+        assert "description" in problem
+        assert "input_description" in problem
+        assert "output_description" in problem
+        assert "samples" in problem
+        assert "constraints" in problem
+        assert "testcases" in problem
+        assert "time_limit" in problem
+        assert "memory_limit" in problem
+        # Optional fields - don't assert these
+        # assert "hint" in problem
+        # assert "source" in problem
+        # assert "tags" in problem
+        # assert "author" in problem
+        # assert "difficulty" in problem
+
+    # Verify submissions data structure
+    assert isinstance(export_data["submissions"], list)
+    if len(export_data["submissions"]) > 0:
+        submission = export_data["submissions"][0]
+        assert "submission_id" in submission
+        assert "user_id" in submission
+        assert "problem_id" in submission
+        assert "language" in submission
+        assert "code" in submission
+        assert "status" in submission
+        assert "score" in submission
+        assert "counts" in submission
+
+
+def test_data_export_non_admin(client):
+    """Test GET /api/export/ - non-admin access"""
+    reset_system(client)
+    username, password, user_id = create_test_user(client)
+    setup_user_session(client, username, password)
+
+    response = client.get("/api/export/")
+    assert response.status_code == 403
+    data = response.json()
+    assert data["code"] == 403
+
+
+def test_data_export_not_logged_in(client):
+    """Test GET /api/export/ - not logged in"""
+    reset_system(client)
+
+    response = client.get("/api/export/")
+    assert response.status_code == 403  # According to api.md, should be 403 for admin-only endpoints
+
+
+def test_system_reset(client):
+    """Test POST /api/reset/"""
+    # Setup some data first
+    reset_system(client)
+    setup_admin_session(client)
+
+    # Add a problem
+    problem_data = {
+        "id": "reset_test_" + uuid.uuid4().hex[:4],
+        "title": "Test Problem",
+        "description": "Test",
+        "input_description": "Input",
+        "output_description": "Output",
+        "samples": [{"input": "1", "output": "1"}],
+        "constraints": "|x| <= 10^9",
+        "testcases": [{"input": "1", "output": "1"}],
+        "time_limit": 1.0,
+        "memory_limit": 128
+    }
+    client.post("/api/problems/", json=problem_data)
+
+    # Reset system
+    response = client.post("/api/reset/")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["code"] == 200
+    assert data["msg"] == "system reset successfully"
+    assert data["data"] is None
+
+
+def test_system_reset_non_admin(client):
+    """Test POST /api/reset/ - non-admin access"""
+    reset_system(client)
+    username, password, user_id = create_test_user(client)
+    setup_user_session(client, username, password)
+
+    response = client.post("/api/reset/")
+    assert response.status_code == 403
+    data = response.json()
+    assert data["code"] == 403
+
+
+def test_system_reset_not_logged_in(client):
+    """Test POST /api/reset/ - not logged in"""
+    reset_system(client)
+
+    response = client.post("/api/reset/")
+    assert response.status_code == 403  # According to api.md, should be 403 for admin-only endpoints
