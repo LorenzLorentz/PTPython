@@ -57,5 +57,4 @@ class ProblemAddPayload(ProblemBase):
     pass
 
 class ProblemSetLogVisibilityPayload(BaseModel):
-    problem_id:str = Field(..., description="题目唯一标识")
     public_cases:bool = Field(..., description="是否允许所有用户查看测例详情")

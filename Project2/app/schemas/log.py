@@ -1,5 +1,6 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field, ConfigDict
+from fastapi import Query
 from datetime import datetime
 
 """Base"""
@@ -15,9 +16,9 @@ class LogBase(BaseModel):
 class LogResponse(LogBase):
     pass
 
-"""Payload"""
-class LogQueryPayload(BaseModel):
-    user_id:int = Field(..., description="用户id")
-    problem_id:str = Field(..., description="题目id")
-    page:Optional[int] = Field(0, description="页码")
-    page_size:Optional[int] = Field(10, description="每页数量")
+"""Params"""
+class LogQueryParams(BaseModel):
+    user_id:Optional[int] = Query(None, description="用户id")
+    problem_id:Optional[str] = Query(None, description="题目id")
+    page:int = Query(0, description="页码")
+    page_size:int = Query(10, description="每页数量")

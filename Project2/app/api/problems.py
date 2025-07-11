@@ -66,4 +66,4 @@ async def set_log_visibility(request:Request, problem_id:str, payload:ProblemSet
     if db_problem is None:
         raise APIException(status_code=404, msg="题目不存在")
     
-    return db_problem
+    return {"msg": "log visibility updated", "data": db_problem}

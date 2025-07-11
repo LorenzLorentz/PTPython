@@ -18,16 +18,11 @@ def add_submission(db:Session, submission:SubmissionAddPayload, _problem_id:int,
     db.add(db_submission)
     db.commit()
     db.refresh(db_submission)
-
-    with open("error.log", "a") as f:
-        print(db_submission.__dict__, file=f)
     
     return db_submission
 
 def get_submission(db:Session, submission_id:int):
     db_submission = db.query(SubmissionModel).filter(SubmissionModel.id == submission_id).first()
-    with open("error.log", "a") as f:
-        print(db_submission.__dict__, file=f)
     return db_submission
 
 def get_submission_list(db:Session, user_id:int, _problem_id:int, status:str, offset:int, limit:int):

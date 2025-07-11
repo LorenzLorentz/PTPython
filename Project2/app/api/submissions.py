@@ -111,6 +111,6 @@ async def get_submission_log(request:Request, submission_id:int, db_session=Depe
         else:
             data = SubmissionLogResponse.from_orm(db_submission)
     
-    # db.db_log.add_log(db=db_session, user_id=user_id, problem_id=db_submission.problem_id, action="view_log", time=datetime.now(),)
+    db.db_log.add_log(db=db_session, user_id=user_id, _problem_id=db_submission._problem_id, action="view_log")
 
     return {"msg": "success", "data": data}

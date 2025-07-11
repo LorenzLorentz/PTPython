@@ -1,6 +1,7 @@
 import enum
 from sqlalchemy import Column, Integer, String, ForeignKey, Float, DateTime, JSON, Boolean, Enum, Text, func
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from app.db.database import Base
 
@@ -141,6 +142,18 @@ class SubmissionModel(Base):
     language = relationship("LanguageModel", back_populates="submissions")
     test_case_results = relationship("TestCaseResultModel", back_populates="submission", cascade="all, delete-orphan")
 
+    @hybrid_property
+    def problem_id(self) -> str | None:
+        if self.problem:
+            return self.problem.problem_id
+        return None
+    
+    @hybrid_property
+    def language_name(self) -> str | None:
+        if self.language:
+            return self.language.name
+        return None
+
 class LogModel(Base):
     __tablename__ = "logs"
 
@@ -156,3 +169,9 @@ class LogModel(Base):
     # RelationShips
     user = relationship("UserModel", back_populates="logs")
     problem = relationship("ProblemModel", back_populates="logs")
+
+    @hybrid_property
+    def problem_id(self) -> str | None:
+        if self.problem:
+            return self.problem.problem_id
+        return None
