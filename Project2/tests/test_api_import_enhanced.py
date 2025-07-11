@@ -125,7 +125,8 @@ def test_data_import_complete_verification(client):
             assert problem_id in existing_problem_ids
 
         # Check submissions were imported
-        submissions_response = client.get("/api/submissions/")
+        # According to api.md, must provide user_id or problem_id parameter
+        submissions_response = client.get("/api/submissions/?user_id=100")
         assert submissions_response.status_code == 200
         submissions_data = submissions_response.json()["data"]["submissions"]
         assert len(submissions_data) >= 1  # At least the imported submission
