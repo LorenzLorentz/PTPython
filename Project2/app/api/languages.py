@@ -15,11 +15,15 @@ async def add_language(request:Request, payload:LanguageAddPayload, db_session=D
     """动态注册新语言"""
     if not check_admin(request=request, db_session=db_session):
         raise APIException(status_code=403, msg="用户无权限")
+    
+    exist = db.db_language.get_language_by_name(db=db_session, name=payload.name)
+    if exist:
+        raise APIException(status_code=400, msg="语言已存在")
 
     db_language = db.db_language.add_language(db=db_session, language=payload)
     return {"msg": "language registered", "data": db_language}
 
-@router.get("/", response_model=ResponseModel[LanguageInfo])
+@router.get("/", response_model=ResponseModel[List[LanguageInfo]])
 async def get_language_list(db_session=Depends(get_db)):
     """查询支持语言列表"""
-    return db.db_language.get_language_list(db=db_session)
+    return {"msg": "success", "data": db.db_language.get_language_list(db=db_session)}

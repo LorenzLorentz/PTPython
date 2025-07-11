@@ -3,7 +3,7 @@ from app.db.models import LanguageModel
 from app.schemas.language import LanguageAddPayload
 from app.api.utils.security import get_password_hash
 
-def add_language(db:Session, language:LanguageAddPayload,):
+def add_language(db:Session, language:LanguageAddPayload):
     db_language = LanguageModel(**language.model_dump())
     db.add(db_language)
     db.commit()
@@ -12,3 +12,6 @@ def add_language(db:Session, language:LanguageAddPayload,):
 
 def get_language_list(db:Session):
     return db.query(LanguageModel).all()
+
+def get_language_by_name(db:Session, name:str):
+    return db.query(LanguageModel).filter(LanguageModel.name == name).first()
