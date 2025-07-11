@@ -3,7 +3,7 @@ from typing import List, Annotated
 
 from app import db
 from app.db.database import get_db
-from app.schemas.user import User, UserAddPayload, UserID, UserInfo, UserRole, UserQueryPayload, UserRolePayload, UserList, UserAdmin
+from app.schemas.user import User, UserAddPayload, UserID, UserInfo, UserRole, UserQueryParams, UserRolePayload, UserList, UserAdmin
 from app.schemas.response import ResponseModel
 from app.api.utils.permission import check_admin, check_login
 from app.api.utils.exception import APIException
@@ -85,11 +85,11 @@ async def permission_adjust(request:Request, user_id:int, payload:UserRolePayloa
     return {"msg": "role updated", "data": db_user}
 
 @router.get("/", response_model=ResponseModel[UserList])
-async def get_user_list(request:Request, payload:UserQueryPayload=Depends(), db_session=Depends(get_db)):
+async def get_user_list(request:Request, params:UserQueryParams=Depends(), db_session=Depends(get_db)):
     """用户列表查询"""
     if not check_admin(request=request, db_session=db_session):
         raise APIException(status_code=403, msg="权限不足")
 
-    result = db.db_user.get_user_list(db=db_session, offset=payload.page*payload.page_size, limit=payload.page_size)
+    result = db.db_user.get_user_list(db=db_session, offset=params.page*params.page_size, limit=params.page_size)
     
     return {"msg": "success", "data": result}

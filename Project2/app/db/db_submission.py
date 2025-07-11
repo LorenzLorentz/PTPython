@@ -36,10 +36,11 @@ def get_submission_list(db:Session, user_id:int, problem_id:str, status:str, off
 def reset_submission(db:Session, submission_id:int):
     db_submission = db.query(SubmissionModel).filter(SubmissionModel.submission_id == submission_id).first()
     if db_submission:
-        db_submission.status = "pending"
+        db_submission.status = "Pending"
         db_submission.status_detail = "[]"
         db_submission.time = 0.0
         db_submission.memory = 0
+        db_submission.counts = 0
         
         db.commit()
         db.refresh(db_submission)

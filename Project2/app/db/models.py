@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Float, DateTime, JSON, Boolean, func
+from sqlalchemy import Column, Integer, String, ForeignKey, Float, DateTime, JSON, Boolean, func, text, Enum
 from sqlalchemy.orm import relationship
 from app.db.database import Base
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -64,14 +64,14 @@ class SubmissionModel(Base):
     __tablename__ = "submissions"
 
     submission_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    code = Column(String)
-    status = Column(String)
-    score = Column(Integer)
-    counts = Column(Integer)
-    time = Column(Float)
-    memory = Column(Integer)
+    code = Column(String, nullable=False)
+    status = Column(String, server_default=text('Pending'), nullable=False)
+    score = Column(Integer, server_default=text('10'), nullable=False)
+    counts = Column(Integer, server_default=text('0'), nullable=False)
+    time = Column(Float, server_default=text('0.0'), nullable=False)
+    memory = Column(Integer, server_default=text('0'), nullable=False)
 
-    testcases = Column(JSON)
+    testcases = Column(JSON, nullable=False)
 
     problem_id = Column(String, ForeignKey("problems.problem_id"))
     user_id = Column(Integer, ForeignKey("users.user_id"))

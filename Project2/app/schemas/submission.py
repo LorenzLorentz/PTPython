@@ -1,6 +1,7 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
+from fastapi import APIRouter, Depends, Query
 
 from app.schemas.language import Language
 from app.schemas.problem import Case
@@ -31,6 +32,7 @@ class Submission(BaseModel):
 
     test_cases:List[TestCaseDetail] = Field(..., description="各测试点评测状态")
 
+"""Response"""
 class SubmissionError(BaseModel):
     submission_id:int = Field(..., description="评测id")
     status:str = Field(..., description="评测状态")
@@ -83,9 +85,18 @@ class SubmissionAddPayload(BaseModel):
     language_name:str = Field(..., alias="language", description="语言")
     code:str = Field(..., description="用户代码内容")
 
-class SubmissionQueryPayload(BaseModel):
-    user_id:Optional[int] = Field(None, description="用户id")
-    problem_id:Optional[str] = Field(None, description="题目id")
-    status:Optional[str] = Field(None, description="评测状态")
-    page:int = Field(..., description="页码")
-    page_size:int = Field(..., description="每页大小")
+"""Params"""
+class SubmissionQueryParams:
+    def __init__(
+        self,
+        user_id:Optional[int] = Query(None, description="用户id"),
+        problem_id:Optional[str] = Query(None, description="题目id"),
+        status:Optional[str] = Query(None, description="评测状态"),
+        page:Optional[int] = Query(0, description="页码", ge=0),
+        page_size:Optional[int] = Query(10, description="每页大小", gt=0),
+    ):
+        self.user_id = user_id
+        self.problem_id = problem_id
+        self.status = status
+        self.page = page
+        self.page_size = page_size

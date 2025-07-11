@@ -1,6 +1,7 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
+from fastapi import Query
 
 class User(BaseModel):
     user_id:int = Field(..., description="用户id")
@@ -62,6 +63,12 @@ class UserAddPayload(BaseModel):
 class UserRolePayload(BaseModel):
     role:str = Field(..., description="新权限")
 
-class UserQueryPayload(BaseModel):
-    page:Optional[int] = Field(0, description="页码")
-    page_size:Optional[int] = Field(10, description="每页大小")
+"""Params"""
+class UserQueryParams:
+    def __init__(
+        self,
+        page:Optional[int] = Query(0, description="页码", ge=0),
+        page_size:Optional[int] = Query(10, description="每页大小", gt=0)
+    ):
+        self.page = page
+        self.page_size = page_size

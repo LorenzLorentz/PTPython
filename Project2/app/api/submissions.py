@@ -4,7 +4,7 @@ from datetime import datetime
 
 from app import db
 from app.db.database import get_db
-from app.schemas.submission import SubmissionAddPayload, SubmissionResult, SubmissionStatus, SubmissionQueryPayload, SubmissionList, SubmissionLog, SubmissionLogDetail
+from app.schemas.submission import SubmissionAddPayload, SubmissionResult, SubmissionStatus, SubmissionQueryParams, SubmissionList, SubmissionLog, SubmissionLogDetail
 from app.schemas.response import ResponseModel
 from app.api.utils.permission import check_admin, check_login, check_banned
 from app.api.utils.exception import APIException
@@ -14,7 +14,7 @@ router = APIRouter()
 @router.post("/", response_model=ResponseModel[SubmissionStatus])
 async def submit(request:Request, payload:SubmissionAddPayload, db_session=Depends(get_db)):
     """提交评测"""
-    if check_login(request=request, db_session=db_session):
+    if not check_login(request=request, db_session=db_session):
         raise APIException(status_code=401, msg="未登录")
     
     if check_banned(request=request, db_session=db_session):
@@ -43,26 +43,27 @@ async def get_submission_result(request:Request, submission_id:int, db_session=D
         db_user = db.db_user.get_user(db=db_session, user_id=user_id)
         if db_user is None:
             raise APIException(status_code=401, msg="用户未登录")
-        if db_user.user_id is not "admin":
+        if db_user.user_id != "admin":
             raise APIException(status_code=403, msg="权限不足")
     
     return {"msg": "success", "data": db_submission}
 
 @router.get("/", response_model=ResponseModel[SubmissionList])
-async def get_submission_result_list(request:Request, payload:SubmissionQueryPayload, db_session=Depends(get_db)):
+async def get_submission_result_list(request:Request, params:SubmissionQueryParams=Depends(), db_session=Depends(get_db)):
     """查询评测列表"""
-    if payload.user_id is None:
-        if not check_admin(request=request, db_session=db_session):
+    if params.user_id is None and params.problem_id is None:
+        raise APIException(400, "一级条件不可以全部为空")
+
+    user_id = request.session.get("user_id")
+    is_admin = check_admin(request=request, db_session=db_session)
+
+    if params.user_id is None:
+        if not is_admin and user_id != params.user_id:
             raise APIException(403, "权限不足")
     else:
-        user_id = request.session.get("user_id")
-        if user_id is not payload.user_id:
-            db_user = db.db_user.get_user(db=db_session, user_id=user_id)
-            if db_user is None:
-                raise APIException(403, "权限不足")
-            if db_user.user_id is not "admin":
-                raise APIException(403, "权限不足")
-            
+        if not is_admin:
+            raise APIException(403, "权限不足")
+    
     db_submission_list = db.db_submission.get_submission_list()
     return {"msg": "success", "data": db_submission_list}
 
@@ -79,7 +80,7 @@ async def rejudge(request:Request, submission_id:int, db_session=Depends(get_db)
     if db_submission is None:
         raise APIException(status_code=404, msg="评测不存在")
     
-    return db_submission
+    return {"msg": "rejudge started", "data": db_submission}
 
 @router.get("/{submission_id}/log", response_model=ResponseModel[Union[SubmissionLog, SubmissionLogDetail]])
 async def get_submission_log(request:Request, submission_id:int, db_session=Depends(get_db)):
@@ -94,7 +95,7 @@ async def get_submission_log(request:Request, submission_id:int, db_session=Depe
         db_user = db.db_user.get_user(db=db_session, user_id=user_id)
         if db_user is None:
             raise APIException(status_code=401, msg="用户未登录")
-        if db_user.user_id is not "admin":
+        if db_user.user_id != "admin":
             raise APIException(status_code=403, msg="权限不足")
     
     data = None
