@@ -4,20 +4,23 @@ from typing import List
 from app import db
 from app.db.database import get_db
 from app.schemas.response import ResponseModel
-from app.schemas.problem import Problem, ProblemAddPayload, ProblemID, ProblemBrief, ProblemSetLogVisibilityPayload, ProblemLogVisibility
+from app.schemas.problem import (
+    ProblemInfoResponse, ProblemBriefResponse, ProblemIDResponse, ProblemLogVisibilityResponse,
+    ProblemAddPayload, ProblemSetLogVisibilityPayload
+)
 from app.api.utils.permission import check_admin, check_login
 from app.api.utils.exception import APIException
 
 router = APIRouter()
 
-@router.get("/", response_model=ResponseModel[List[ProblemBrief]])
+@router.get("/", response_model=ResponseModel[List[ProblemBriefResponse]])
 async def get_problems_list(db_session=Depends(get_db)):
     """查看题目列表"""
     problem_list = db.db_problem.get_problem_list(db=db_session)
     
     return {"msg": "success", "data": problem_list}
 
-@router.post("/", response_model=ResponseModel[ProblemID], status_code=200)
+@router.post("/", response_model=ResponseModel[ProblemIDResponse], status_code=200)
 async def add_problem(payload:ProblemAddPayload, db_session=Depends(get_db)):
     """添加题目"""
     exist = db.db_problem.get_problem(db=db_session, problem_id=payload.problem_id)
@@ -27,7 +30,7 @@ async def add_problem(payload:ProblemAddPayload, db_session=Depends(get_db)):
     db_problem = db.db_problem.add_problem(db=db_session, problem=payload)
     return {"msg": "add success", "data": db_problem}
 
-@router.delete("/{problem_id}", response_model=ResponseModel[ProblemID])
+@router.delete("/{problem_id}", response_model=ResponseModel[ProblemIDResponse])
 async def delete_problem(request:Request, problem_id:str, db_session=Depends(get_db)) -> dict:
     """删除题目"""
     if not check_admin(request=request, db_session=db_session):
@@ -40,7 +43,7 @@ async def delete_problem(request:Request, problem_id:str, db_session=Depends(get
     
     return {"msg": "delete success", "data": db_problem}
 
-@router.get("/{problem_id}", response_model=ResponseModel[Problem])
+@router.get("/{problem_id}", response_model=ResponseModel[ProblemInfoResponse])
 async def get_problem(problem_id:str, db_session=Depends(get_db)) -> dict:
     """查看题目信息"""
     problem = db.db_problem.get_problem(db=db_session, problem_id=problem_id)
@@ -50,7 +53,7 @@ async def get_problem(problem_id:str, db_session=Depends(get_db)) -> dict:
 
     return {"msg": "success", "data": problem}
 
-@router.put("/{problem_id}/log_visibility", response_model=ResponseModel[ProblemLogVisibility])
+@router.put("/{problem_id}/log_visibility", response_model=ResponseModel[ProblemLogVisibilityResponse])
 async def set_log_visibility(request:Request, problem_id:str, payload:ProblemSetLogVisibilityPayload, db_session=Depends(get_db)):
     """配置日志/测例可见性"""
     if not check_login(request=request, db_session=db_session):

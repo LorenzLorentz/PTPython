@@ -3,14 +3,17 @@ from typing import List, Annotated
 
 from app import db
 from app.db.database import get_db
-from app.schemas.user import User, UserAddPayload, UserID, UserInfo, UserRole, UserQueryParams, UserRolePayload, UserList, UserAdmin
+from app.schemas.user import(
+    UserInfoResponse, UserIDResponse, UserRoleResponse, UserAdminResponse, UserListResponse,
+    UserAddPayload, UserQueryParams, UserRolePayload
+)
 from app.schemas.response import ResponseModel
 from app.api.utils.permission import check_admin, check_login
 from app.api.utils.exception import APIException
 
 router = APIRouter()
 
-@router.post("/", response_model=ResponseModel[UserInfo])
+@router.post("/", response_model=ResponseModel[UserInfoResponse])
 async def signup(payload:UserAddPayload, db_session=Depends(get_db)):
     """用户注册"""
     if len(payload.username) < 3 or len(payload.username) > 20:
@@ -26,7 +29,7 @@ async def signup(payload:UserAddPayload, db_session=Depends(get_db)):
     db_user = db.db_user.add_user(db=db_session, username=payload.username, password=payload.password, role="user")
     return {"msg": "register success", "data": db_user}
 
-@router.post("/admin", response_model=ResponseModel[UserAdmin])
+@router.post("/admin", response_model=ResponseModel[UserAdminResponse])
 async def signup_admin(request:Request, payload:UserAddPayload, db_session=Depends(get_db)):
     """创建管理员账户"""
     if not check_login(request=request, db_session=db_session):
@@ -48,7 +51,7 @@ async def signup_admin(request:Request, payload:UserAddPayload, db_session=Depen
     db_user = db.db_user.add_user(db=db_session, username=payload.username, password=payload.password, role="admin")
     return {"msg": "success", "data": db_user}
 
-@router.get("/{user_id}", response_model=ResponseModel[UserInfo])
+@router.get("/{user_id}", response_model=ResponseModel[UserInfoResponse])
 async def get_user(request:Request, user_id:int, db_session=Depends(get_db)):
     """查询用户信息"""
     if not check_login(request=request, db_session=db_session):
@@ -63,7 +66,7 @@ async def get_user(request:Request, user_id:int, db_session=Depends(get_db)):
     
     return {"msg": "success", "data": db_user}
 
-@router.put("/{user_id}/role", response_model=ResponseModel[UserRole])
+@router.put("/{user_id}/role", response_model=ResponseModel[UserRoleResponse])
 async def permission_adjust(request:Request, user_id:int, payload:UserRolePayload, db_session=Depends(get_db)):
     """用户权限变更"""
     if not check_login(request=request, db_session=db_session):
@@ -84,7 +87,7 @@ async def permission_adjust(request:Request, user_id:int, payload:UserRolePayloa
 
     return {"msg": "role updated", "data": db_user}
 
-@router.get("/", response_model=ResponseModel[UserList])
+@router.get("/", response_model=ResponseModel[UserListResponse])
 async def get_user_list(request:Request, params:UserQueryParams=Depends(), db_session=Depends(get_db)):
     """用户列表查询"""
     if not check_admin(request=request, db_session=db_session):

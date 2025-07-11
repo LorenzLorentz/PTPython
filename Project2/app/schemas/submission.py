@@ -1,25 +1,26 @@
 from typing import List, Optional
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, computed_field
 from datetime import datetime
 from fastapi import APIRouter, Depends, Query
 
-from app.schemas.language import Language
 from app.schemas.problem import Case
 
-class TestCase(BaseModel):
+"""Base"""
+class TestCaseResult(BaseModel):
     id:int = Field(..., description="测试点id")
     result:str = Field(..., description="测试点结果")
     time:float = Field(..., description="测试点用时")
     memory:int = Field(..., description="测试点内存占用")
 
-class TestCaseDetail(TestCase):
+class TestCaseResultDetail(TestCaseResult):
     case:Case = Field(..., description="测试用例")
     output:str = Field(..., description="预期输出")
     err_msg:str = Field(..., description="错误信息")
 
-class Submission(BaseModel):
+class SubmissionBase(BaseModel):
+    submission_id:int = Field(..., validation_alias="id", description="评测id")
     problem_id:str = Field(..., description="题目编号")
-    language:Language = Field(..., description="语言")
+    language_name:str = Field(..., description="语言")
     code:str = Field(..., description="用户代码内容")
     user_id:int = Field(..., decimal_places="用户id")
     submission_id:int = Field(..., description="评测id")
@@ -30,56 +31,56 @@ class Submission(BaseModel):
     time:Optional[float] = Field(..., description="用时")
     memory:Optional[int] = Field(..., description="内存占用")
 
-    test_cases:List[TestCaseDetail] = Field(..., description="各测试点评测状态")
+    test_case_results:List[TestCaseResultDetail] = Field(..., description="各测试点评测状态")
 
 """Response"""
-class SubmissionError(BaseModel):
-    submission_id:int = Field(..., description="评测id")
+class SubmissionErrorResponse(BaseModel):
+    submission_id:int = Field(..., validation_alias="id", description="评测id")
     status:str = Field(..., description="评测状态")
 
     model_config = ConfigDict(from_attributes=True)
 
-class SubmissionStatus(BaseModel):
-    submission_id:int = Field(..., description="评测id")
+class SubmissionStatusResponse(BaseModel):
+    submission_id:int = Field(..., validation_alias="id", description="评测id")
     status:str = Field(..., description="评测状态")
 
     model_config = ConfigDict(from_attributes=True)
 
-class SubmissionResult(BaseModel):
+class SubmissionResultResponse(BaseModel):
     score:int = Field(..., description="得分")
     counts:int = Field(..., description="总分数")
 
     model_config = ConfigDict(from_attributes=True)
 
-class SubmissionInfo(BaseModel):
-    submission_id:int = Field(..., description="评测id")
+class SubmissionInfoResponse(BaseModel):
+    submission_id:int = Field(..., validation_alias="id", description="评测id")
     status:str = Field(..., description="评测状态")
     score:int = Field(..., description="得分")
     counts:int = Field(..., description="总分数")
 
     model_config = ConfigDict(from_attributes=True)
 
-class SubmissionList(BaseModel):
+class SubmissionListResponse(BaseModel):
     total:int = Field(..., description="总数")
-    submissions:List[SubmissionInfo] = Field(..., description="评测列表")
+    submissions:List[SubmissionInfoResponse] = Field(..., description="评测列表")
 
     model_config = ConfigDict(from_attributes=True)
 
-class SubmissionLog(BaseModel):
-    test_cases:List[TestCase] = Field(..., alias="status", description="各测试点评测状态")
+class SubmissionLogResponse(BaseModel):
+    test_case_results:List[TestCaseResult] = Field(..., validation_alias='test_case_results', serialization_alias='status', description="各测试点评测状态")
     score:Optional[int] = Field(..., description="测试点分数")
     counts:Optional[int] = Field(..., description="总分数")
 
     model_config = ConfigDict(from_attributes=True)
 
-class SubmissionLogDetail(BaseModel):
-    test_cases:List[TestCaseDetail] = Field(..., alias="status", description="各测试点详细评测状态")
+class SubmissionLogDetailResponse(BaseModel):
+    test_cases:List[TestCaseResultDetail] = Field(..., validation_alias='test_case_results', serialization_alias='status', description="各测试点详细评测状态")
     score:Optional[int] = Field(..., description="测试点分数")
     counts:Optional[int] = Field(..., description="总分数")
 
     model_config = ConfigDict(from_attributes=True)
 
-"""payload"""
+"""Payload"""
 class SubmissionAddPayload(BaseModel):
     problem_id:str = Field(..., description="题目编号")
     language_name:str = Field(..., alias="language", description="语言")

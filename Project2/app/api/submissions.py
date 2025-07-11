@@ -4,14 +4,17 @@ from datetime import datetime
 
 from app import db
 from app.db.database import get_db
-from app.schemas.submission import SubmissionAddPayload, SubmissionResult, SubmissionStatus, SubmissionQueryParams, SubmissionList, SubmissionLog, SubmissionLogDetail
+from app.schemas.submission import (
+    SubmissionResultResponse, SubmissionStatusResponse, SubmissionListResponse, SubmissionLogResponse, SubmissionLogDetailResponse,
+    SubmissionAddPayload, SubmissionQueryParams
+)
 from app.schemas.response import ResponseModel
 from app.api.utils.permission import check_admin, check_login, check_banned
 from app.api.utils.exception import APIException
 
 router = APIRouter()
 
-@router.post("/", response_model=ResponseModel[SubmissionStatus])
+@router.post("/", response_model=ResponseModel[SubmissionStatusResponse])
 async def submit(request:Request, payload:SubmissionAddPayload, db_session=Depends(get_db)):
     """提交评测"""
     if not check_login(request=request, db_session=db_session):
@@ -27,10 +30,10 @@ async def submit(request:Request, payload:SubmissionAddPayload, db_session=Depen
     
     # 提交频率超限
 
-    db_submission = db.db_submission.add_submission(db=db_session, submission=payload, problem=db_problem, user_id=request.session.get("user_id"))
+    db_submission = db.db_submission.add_submission(db=db_session, submission=payload, _problem_id=db_problem.id, user_id=request.session.get("user_id"))
     return {"msg": "success", "data": db_submission}
 
-@router.get("/{submission_id}", response_model=ResponseModel[SubmissionResult])
+@router.get("/{submission_id}", response_model=ResponseModel[SubmissionResultResponse])
 async def get_submission_result(request:Request, submission_id:int, db_session=Depends(get_db)):
     """查询评测结果"""
     db_submission = db.db_submission.get_submission(db=db_session, submission_id=submission_id)
@@ -48,7 +51,7 @@ async def get_submission_result(request:Request, submission_id:int, db_session=D
     
     return {"msg": "success", "data": db_submission}
 
-@router.get("/", response_model=ResponseModel[SubmissionList])
+@router.get("/", response_model=ResponseModel[SubmissionListResponse])
 async def get_submission_result_list(request:Request, params:SubmissionQueryParams=Depends(), db_session=Depends(get_db)):
     """查询评测列表"""
     if params.user_id is None and params.problem_id is None:
@@ -67,7 +70,7 @@ async def get_submission_result_list(request:Request, params:SubmissionQueryPara
     db_submission_list = db.db_submission.get_submission_list()
     return {"msg": "success", "data": db_submission_list}
 
-@router.put("/{submission_id}/rejudge", response_model=ResponseModel[SubmissionStatus])
+@router.put("/{submission_id}/rejudge", response_model=ResponseModel[SubmissionStatusResponse])
 async def rejudge(request:Request, submission_id:int, db_session=Depends(get_db)):
     """重新评测"""
     if not check_login(request=request, db_session=db_session):
@@ -82,7 +85,7 @@ async def rejudge(request:Request, submission_id:int, db_session=Depends(get_db)
     
     return {"msg": "rejudge started", "data": db_submission}
 
-@router.get("/{submission_id}/log", response_model=ResponseModel[Union[SubmissionLog, SubmissionLogDetail]])
+@router.get("/{submission_id}/log", response_model=ResponseModel[Union[SubmissionLogResponse, SubmissionLogDetailResponse]])
 async def get_submission_log(request:Request, submission_id:int, db_session=Depends(get_db)):
     """查询评测日志"""
     db_submission = db.db_submission.get_submission(db=db_session, submission_id=submission_id)
@@ -100,14 +103,14 @@ async def get_submission_log(request:Request, submission_id:int, db_session=Depe
     
     data = None
     if check_admin(request=request, db_session=db_session):
-        data = SubmissionLogDetail.from_orm(db_submission)
+        data = SubmissionLogDetailResponse.from_orm(db_submission)
     else:
-        db_problem = db.db_problem.get_problem(db=db_session, problem_id=db_submission.problem_id)
+        db_problem = db.db_problem.get_problem_by_id(db=db_session, _problem_id=db_submission._problem_id)
         if db_problem.log_visibility:
-            data = SubmissionLogDetail.from_orm(db_submission)
+            data = SubmissionLogDetailResponse.from_orm(db_submission)
         else:
-            data = SubmissionLog.from_orm(db_submission)
+            data = SubmissionLogResponse.from_orm(db_submission)
     
-    db.db_log.add_log(db=db_session, user_id=user_id, problem_id=db_submission.problem_id, action="view_log", time=datetime.now(),)
+    # db.db_log.add_log(db=db_session, user_id=user_id, problem_id=db_submission.problem_id, action="view_log", time=datetime.now(),)
 
     return {"msg": "success", "data": data}

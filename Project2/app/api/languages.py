@@ -3,14 +3,14 @@ from typing import List, Annotated
 
 from app import db
 from app.db.database import get_db
-from app.schemas.language import LanguageInfo, LanguageAddPayload
+from app.schemas.language import LanguageInfoResponse, LanguageAddPayload
 from app.schemas.response import ResponseModel
 from app.api.utils.permission import check_admin
 from app.api.utils.exception import APIException
 
 router = APIRouter()
 
-@router.post("/", response_model=ResponseModel[LanguageInfo])
+@router.post("/", response_model=ResponseModel[LanguageInfoResponse])
 async def add_language(request:Request, payload:LanguageAddPayload, db_session=Depends(get_db)):
     """动态注册新语言"""
     if not check_admin(request=request, db_session=db_session):
@@ -23,7 +23,7 @@ async def add_language(request:Request, payload:LanguageAddPayload, db_session=D
     db_language = db.db_language.add_language(db=db_session, language=payload)
     return {"msg": "language registered", "data": db_language}
 
-@router.get("/", response_model=ResponseModel[List[LanguageInfo]])
+@router.get("/", response_model=ResponseModel[List[LanguageInfoResponse]])
 async def get_language_list(db_session=Depends(get_db)):
     """查询支持语言列表"""
     return {"msg": "success", "data": db.db_language.get_language_list(db=db_session)}

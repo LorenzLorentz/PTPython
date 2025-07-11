@@ -3,14 +3,14 @@ from typing import List, Annotated
 
 from app import db
 from app.db.database import get_db
-from app.schemas.log import Log, LogQueryPayload
+from app.schemas.log import LogResponse, LogQueryPayload
 from app.schemas.response import ResponseModel
 from app.api.utils.permission import check_admin, check_login
 from app.api.utils.exception import APIException
 
 router = APIRouter()
 
-@router.get("/access", response_model=ResponseModel[Log])
+@router.get("/access", response_model=ResponseModel[LogResponse])
 async def get_access_log_list(request:Request, payload:LogQueryPayload, db_session=Depends(get_db)):
     """日志访问审计"""
     if not check_login(request=request, db_session=db_session):

@@ -1,15 +1,16 @@
 from typing import List, Optional
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, computed_field
 
+"""Base"""
 class Case(BaseModel):
     input:str
     output:str
 
     model_config = ConfigDict(from_attributes=True)
 
-class Problem(BaseModel):
+class ProblemBase(BaseModel):
     # 必填字段
-    problem_id:str = Field(..., alias="id", description="题目唯一标识")
+    problem_id:str = Field(..., validation_alias="id", serialization_alias="id", description="题目唯一标识")
     title:str = Field(..., description="题目标题")
     description:str = Field(..., description="题目描述")
     input_description:str = Field(..., description="输入格式说明")
@@ -31,25 +32,28 @@ class Problem(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 """Response"""
-class ProblemID(BaseModel):
-    problem_id:str = Field(..., alias="id", description="题目唯一标识")
+class ProblemInfoResponse(ProblemBase):
+    problem_id:str = Field(..., validation_alias="problem_id", serialization_alias="id", description="题目唯一标识")
+
+class ProblemIDResponse(BaseModel):
+    problem_id:str = Field(..., validation_alias="problem_id", serialization_alias="id", description="题目唯一标识")
     
     model_config = ConfigDict(from_attributes=True)
 
-class ProblemBrief(BaseModel):
-    problem_id:str = Field(..., alias="id", description="题目唯一标识")
+class ProblemBriefResponse(BaseModel):
+    problem_id:str = Field(..., validation_alias="problem_id", serialization_alias="id", description="题目唯一标识")
     title:str = Field(..., description="题目标题")
 
     model_config = ConfigDict(from_attributes=True)
 
-class ProblemLogVisibility(BaseModel):
+class ProblemLogVisibilityResponse(BaseModel):
     problem_id:str = Field(..., description="题目唯一标识")
-    public_cases:bool = Field(..., alias="public_cases", description="是否允许所有用户查看测例详情")
+    log_visibility:bool = Field(..., serialization_alias="public_cases", description="是否允许所有用户查看测例详情")
 
     model_config = ConfigDict(from_attributes=True)
 
-"""payload"""
-class ProblemAddPayload(Problem):
+"""Payload"""
+class ProblemAddPayload(ProblemBase):
     pass
 
 class ProblemSetLogVisibilityPayload(BaseModel):

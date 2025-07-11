@@ -3,10 +3,11 @@ from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
 from fastapi import Query
 
-class User(BaseModel):
-    user_id:int = Field(..., description="用户id")
+"""Base"""
+class UserBase(BaseModel):
+    user_id:int = Field(..., validation_alias="id", description="用户id")
     username:str = Field(..., description="用户名")
-    password:str = Field(..., description="密码")
+    hashed_password:str = Field(..., description="密码")
     role:str = Field(..., description="权限")
     join_time:datetime = Field(..., description="加入时间")
     submit_count:int = Field(..., description="提交次数")
@@ -15,21 +16,32 @@ class User(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 """Response"""
-class UserAdmin(BaseModel):
-    user_id:int = Field(..., description="用户id")
+class UserRoleResponse(BaseModel):
+    user_id:int = Field(..., validation_alias="id", description="用户id")
+    role:str = Field(..., description="权限")
+
+    model_config = ConfigDict(from_attributes=True)
+
+class UserIDResponse(BaseModel):
+    user_id:int = Field(..., validation_alias="id", description="用户id")
+    
+    model_config = ConfigDict(from_attributes=True)
+
+class UserAdminResponse(BaseModel):
+    user_id:int = Field(..., validation_alias="id", description="用户id")
     username:str = Field(..., description="用户名")
     
     model_config = ConfigDict(from_attributes=True)
 
-class UserBrief(BaseModel):
-    user_id:int = Field(..., description="用户id")
+class UserBriefResponse(BaseModel):
+    user_id:int = Field(..., validation_alias="id", description="用户id")
     username:str = Field(..., description="用户名")
     role:str = Field(..., description="权限")
     
     model_config = ConfigDict(from_attributes=True)
 
-class UserInfo(BaseModel):
-    user_id:int = Field(..., description="用户id")
+class UserInfoResponse(BaseModel):
+    user_id:int = Field(..., validation_alias="id", description="用户id")
     username:str = Field(..., description="用户名")
     join_time:datetime = Field(..., description="加入时间")
     role:str = Field(..., description="权限")
@@ -38,20 +50,9 @@ class UserInfo(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-class UserRole(BaseModel):
-    user_id:int = Field(..., description="用户id")
-    role:str = Field(..., description="权限")
-
-    model_config = ConfigDict(from_attributes=True)
-
-class UserID(BaseModel):
-    user_id:int = Field(..., description="用户id")
-    
-    model_config = ConfigDict(from_attributes=True)
-
-class UserList(BaseModel):
+class UserListResponse(BaseModel):
     total:int = Field(..., description="总数")
-    users:List[UserInfo] = Field(..., description="用户列表")
+    users:List[UserInfoResponse] = Field(..., description="用户列表")
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -67,8 +68,8 @@ class UserRolePayload(BaseModel):
 class UserQueryParams:
     def __init__(
         self,
-        page:Optional[int] = Query(0, description="页码", ge=0),
-        page_size:Optional[int] = Query(10, description="每页大小", gt=0)
+        page:int = Query(1, description="页码", ge=1),
+        page_size:int = Query(10, description="每页大小", gt=0)
     ):
         self.page = page
         self.page_size = page_size

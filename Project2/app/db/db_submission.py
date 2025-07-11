@@ -1,32 +1,49 @@
 from sqlalchemy.orm import Session
-from app.db.models import SubmissionModel
+from app.db.db_language import get_language_by_name
+from app.db.models import SubmissionModel, StatusCategory
 from app.schemas.submission import SubmissionAddPayload
-from app.schemas.problem import Problem
+from app.schemas.problem import ProblemBase
 
-def add_submission(db:Session, submission:SubmissionAddPayload, problem:Problem, user_id:int):
-    db_submission = SubmissionModel(user_id=user_id, testcases=problem.testcases, **submission.model_dump())
+def add_submission(db:Session, submission:SubmissionAddPayload, _problem_id:int, user_id:int):
+    submission_data = submission.model_dump()
+    submission_data.pop("problem_id")
+    language_name = submission_data.pop("language_name")
+    language = get_language_by_name(db=db, name=language_name)
+    
+    if language:
+        db_submission = SubmissionModel(user_id=user_id, _problem_id=_problem_id, language_id=language.id, **submission_data)
+    else:
+        db_submission = SubmissionModel(user_id=user_id, _problem_id=_problem_id, **submission_data)
+    
     db.add(db_submission)
     db.commit()
     db.refresh(db_submission)
+
+    with open("error.log", "a") as f:
+        print(db_submission.__dict__, file=f)
+    
     return db_submission
 
 def get_submission(db:Session, submission_id:int):
-    return db.query(SubmissionModel).filter(SubmissionModel.submission_id == submission_id).first()
+    db_submission = db.query(SubmissionModel).filter(SubmissionModel.id == submission_id).first()
+    with open("error.log", "a") as f:
+        print(db_submission.__dict__, file=f)
+    return db_submission
 
-def get_submission_list(db:Session, user_id:int, problem_id:str, status:str, offset:int, limit:int):
+def get_submission_list(db:Session, user_id:int, _problem_id:int, status:str, offset:int, limit:int):
     query = db.query(SubmissionModel)
 
     if user_id:
         query = query.filter(SubmissionModel.user_id == user_id)
 
-    if problem_id:
-        query = query.filter(SubmissionModel.problem_id == problem_id)
+    if _problem_id:
+        query = query.filter(SubmissionModel._problem_id == _problem_id)
 
     if status:
         query = query.filter(SubmissionModel.status == status)
 
     total = query.count()
-    submissions = query.offset(offset).limit(limit)
+    submissions = query.offset(offset).limit(limit).all()
 
     return {
         "total": total,
@@ -34,10 +51,10 @@ def get_submission_list(db:Session, user_id:int, problem_id:str, status:str, off
     }
 
 def reset_submission(db:Session, submission_id:int):
-    db_submission = db.query(SubmissionModel).filter(SubmissionModel.submission_id == submission_id).first()
+    db_submission = db.query(SubmissionModel).filter(SubmissionModel.id == submission_id).first()
     if db_submission:
-        db_submission.status = "Pending"
-        db_submission.status_detail = "[]"
+        db_submission.status = StatusCategory.PENDING
+        db_submission.test_case_results = []
         db_submission.time = 0.0
         db_submission.memory = 0
         db_submission.counts = 0
