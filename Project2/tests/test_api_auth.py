@@ -99,15 +99,16 @@ class TestAuth:
 
     def test_session_persistence(self):
         """Test that session persists across requests"""
-        # Login
+        # Login as admin
         login_response = client.post("/api/auth/login", json={
             "username": "admin",
             "password": "admin"
         })
         assert login_response.status_code == 200
+        admin_user_id = login_response.json()["data"]["user_id"]
 
         # Make an authenticated request (get user info)
-        user_response = client.get("/api/users/1")
+        user_response = client.get(f"/api/users/{admin_user_id}")
         assert user_response.status_code == 200
 
         # Logout
@@ -115,5 +116,5 @@ class TestAuth:
         assert logout_response.status_code == 200
 
         # Try authenticated request after logout (should fail)
-        user_response_after_logout = client.get("/api/users/1")
+        user_response_after_logout = client.get(f"/api/users/{admin_user_id}")
         assert user_response_after_logout.status_code == 401
