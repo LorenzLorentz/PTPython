@@ -45,7 +45,7 @@ def test_submit_solution(client):
     assert data["msg"] == "success"
     assert "data" in data
     assert "submission_id" in data["data"]
-    assert data["data"]["status"] == "Pending"
+    assert data["data"]["status"] == "pending"
     
     # Test invalid problem_id
     submission_data["problem_id"] = "nonexistent"
@@ -211,7 +211,7 @@ def test_rejudge_submission(client):
     assert data["code"] == 200
     assert data["msg"] == "rejudge started"
     assert data["data"]["submission_id"] == submission_id
-    assert data["data"]["status"] == "Pending"
+    assert data["data"]["status"] == "pending"
     
     # Test non-existent submission
     response = client.put("/api/submissions/999999/rejudge")
