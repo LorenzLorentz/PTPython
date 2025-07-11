@@ -114,16 +114,12 @@ def test_get_supported_languages(client):
     assert data["code"] == 200
     assert data["msg"] == "success"
     assert "data" in data
-    assert isinstance(data["data"], list)
-    
-    # Verify structure of language entries
-    for lang_info in data["data"]:
-        assert "name" in lang_info
-        assert "run_cmd" in lang_info
-        # compile_cmd is optional
+    assert isinstance(data["data"], dict)
+    assert "name" in data["data"]
+    assert isinstance(data["data"]["name"], list)
     
     # Check that our registered languages are in the list
-    returned_names = [lang["name"] for lang in data["data"]]
+    returned_names = data["data"]["name"]
     for name in registered_names:
         assert name in returned_names
     

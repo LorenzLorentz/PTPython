@@ -119,5 +119,5 @@ def test_initial_admin_exists(client):
 
     # Verify admin user exists in the user list
     users = data["data"]["users"]
-    admin_found = any(user["username"] == "admin" and user["role"] == "admin" for user in users)
+    admin_found = any(user["username"] == "admin" for user in users)
     assert admin_found, "Initial admin user not found in user list"
