@@ -79,7 +79,7 @@ def test_data_import(client):
     # Prepare test data for import
     import_data = {
         "users": [
-            {"username": "imported_user_" + uuid.uuid4().hex[:4], "password": "pw123", "role": "user"}
+            {"username": "imported_user_" + uuid.uuid4().hex[:4], "password": "pw123456789", "role": "user"}
         ],
         "problems": [
             {
