@@ -204,7 +204,7 @@ def test_access_audit_logs(client):
     assert isinstance(data["data"], list)
     
     # Test with user_id filter
-    user_id = 1  # Assuming first user gets ID 1
+    user_id = "1"  # API uses string IDs
     response = client.get(f"/api/logs/access/?user_id={user_id}")
     assert response.status_code == 200
     data = response.json()

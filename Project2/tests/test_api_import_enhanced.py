@@ -18,7 +18,7 @@ def test_data_import_complete_verification(client):
                 "user_id": "100",
                 "username": "imported_user1_" + uuid.uuid4().hex[:4],
                 "role": "user",
-                "join_time": "2024-01-01T00:00:00",
+                "join_time": "2024-01-01",  # API uses date format
                 "submit_count": 5,
                 "resolve_count": 3
             },
@@ -26,7 +26,7 @@ def test_data_import_complete_verification(client):
                 "user_id": "101",
                 "username": "imported_admin_" + uuid.uuid4().hex[:4],
                 "role": "admin",
-                "join_time": "2024-01-01T00:00:00",
+                "join_time": "2024-01-01",  # API uses date format
                 "submit_count": 10,
                 "resolve_count": 8
             }
@@ -72,7 +72,7 @@ def test_data_import_complete_verification(client):
         ],
         "submissions": [
             {
-                "submission_id": 1,
+                "submission_id": "1",  # API uses string IDs
                 "user_id": "100",
                 "problem_id": "imported_prob1",
                 "language": "python",
