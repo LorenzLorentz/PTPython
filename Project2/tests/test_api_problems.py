@@ -6,6 +6,7 @@ from test_helpers import setup_user_session, reset_system, create_test_user, set
 def test_get_problems_list(client):
     """Test GET /api/problems/"""
     # Get problems list (public endpoint)
+    setup_admin_session(client)
     response = client.get("/api/problems/")
     assert response.status_code == 200
     data = response.json()
@@ -19,6 +20,7 @@ def test_add_problem(client):
     """Test POST /api/problems/ - authenticated users can add problems"""
     # Reset system
     reset_system(client)
+    setup_admin_session(client)
 
     # Test admin user can add problem (using default admin session)
     # Add problem
@@ -74,6 +76,7 @@ def test_get_problem_info(client):
     """Test GET /api/problems/{problem_id}"""
     # Reset system
     reset_system(client)
+    setup_admin_session(client)
 
     problem_id = "test_problem_" + uuid.uuid4().hex[:4]
     problem_data = {
