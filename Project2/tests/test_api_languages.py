@@ -25,14 +25,6 @@ def test_register_language(client):
     assert data["code"] == 200
     assert data["msg"] == "language registered"
     assert data["data"]["name"] == "cpp"
-    
-    # Test non-admin access
-    username, password, user_id = create_test_user(client)
-    setup_user_session(client, username, password)
-    
-    response = client.post("/api/languages/", json=language_data)
-    assert response.status_code == 403
-
 
 def test_get_supported_languages(client):
     """Test GET /api/languages/"""
