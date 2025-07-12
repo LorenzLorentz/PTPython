@@ -1,10 +1,9 @@
-# app/judger/celery_app.py
 from celery import Celery
 
 celery_app = Celery(
-    "tasks",
-    broker=config.settings.CELERY_BROKER_URL,
-    backend=config.settings.CELERY_RESULT_BACKEND,
+    "judge_worker",
+    broker="redis://localhost:6379/0",
+    backend="redis://localhost:6379/0",
     include=["app.judger.tasks"]
 )
 
@@ -15,3 +14,9 @@ celery_app.conf.update(
     timezone="UTC",
     enable_utc=True,
 )
+
+celery_app.conf.task_routes = {
+    'tasks.compile_task': {'queue': 'compile_queue'},
+    'tasks.run_task': {'queue': 'judge_queue'},
+    'tasks.collect_results_task': {'queue': 'judge_queue'},
+}

@@ -16,9 +16,11 @@ class StatusCategory(enum.Enum):
     RE = "RE"
     TLE = "TLE"
     MLE = "MLE"
-    PENDING = "pending"
+    CE = "CE"
     JUDGING = "judging"
-    ERROR = "error"
+    PENDING = "pending"
+    COMPILING = "compiling"
+    UNK = "UNK"
 
 """Models"""
 class UserModel(Base):
