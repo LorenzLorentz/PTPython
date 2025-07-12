@@ -1,6 +1,6 @@
 import uuid
 
-from test_helpers import setup_user_session, reset_system, create_test_user
+from test_helpers import setup_user_session, reset_system, create_test_user, setup_admin_session
 
 
 def test_get_problems_list(client):
@@ -114,6 +114,8 @@ def test_delete_problem(client):
     """Test DELETE /api/problems/{problem_id}"""
     # Reset system
     reset_system(client)
+
+    setup_admin_session(client)
 
     problem_id = "test_delete_" + uuid.uuid4().hex[:4]
     problem_data = {
