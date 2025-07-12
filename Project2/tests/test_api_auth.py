@@ -13,7 +13,7 @@ class TestAuth:
         """Test successful admin login"""
         response = client.post("/api/auth/login", json={
             "username": "admin",
-            "password": "admintestpassword"
+            "password": "admin"
         })
         assert response.status_code == 200
         data = response.json()
@@ -102,7 +102,7 @@ class TestAuth:
         # Login as admin
         login_response = client.post("/api/auth/login", json={
             "username": "admin",
-            "password": "admintestpassword"
+            "password": "admin"
         })
         assert login_response.status_code == 200
         admin_user_id = login_response.json()["data"]["user_id"]

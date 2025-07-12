@@ -93,6 +93,6 @@ async def get_user_list(request:Request, params:UserQueryParams=Depends(), db_se
     if not check_admin(request=request, db_session=db_session):
         raise APIException(status_code=403, msg="权限不足")
 
-    result = db.db_user.get_user_list(db=db_session, offset=params.page*params.page_size, limit=params.page_size)
+    result = db.db_user.get_user_list(db=db_session, offset=(params.page-1)*params.page_size, limit=params.page_size)
     
     return {"msg": "success", "data": result}

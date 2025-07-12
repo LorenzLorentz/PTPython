@@ -60,14 +60,17 @@ async def get_submission_result_list(request:Request, params:SubmissionQueryPara
     user_id = request.session.get("user_id")
     is_admin = check_admin(request=request, db_session=db_session)
 
-    if params.user_id is None:
+    if params.user_id is not None:
         if not is_admin and user_id != params.user_id:
             raise APIException(403, "权限不足")
     else:
         if not is_admin:
             raise APIException(403, "权限不足")
     
-    db_submission_list = db.db_submission.get_submission_list()
+    db_submission_list = db.db_submission.get_submission_list(
+        db=db_session, user_id=user_id, problem_id=params.problem_id, status=params.status,
+        offset=params.page*params.page_size, limit=params.page_size
+    )
     return {"msg": "success", "data": db_submission_list}
 
 @router.put("/{submission_id}/rejudge", response_model=ResponseModel[SubmissionStatusResponse])

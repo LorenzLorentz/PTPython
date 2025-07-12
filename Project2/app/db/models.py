@@ -11,7 +11,7 @@ class CaseCategory(enum.Enum):
     TESTCASE = "testcase"
 
 class StatusCategory(enum.Enum):
-    PENDING = "Pending"
+    PENDING = "pending"
     AC = "AC"
     WA = "WA"
     RE = "RE"

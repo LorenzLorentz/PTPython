@@ -87,17 +87,9 @@ class SubmissionAddPayload(BaseModel):
     code:str = Field(..., description="用户代码内容")
 
 """Params"""
-class SubmissionQueryParams:
-    def __init__(
-        self,
-        user_id:Optional[int] = Query(None, description="用户id"),
-        problem_id:Optional[str] = Query(None, description="题目id"),
-        status:Optional[str] = Query(None, description="评测状态"),
-        page:Optional[int] = Query(0, description="页码", ge=0),
-        page_size:Optional[int] = Query(10, description="每页大小", gt=0),
-    ):
-        self.user_id = user_id
-        self.problem_id = problem_id
-        self.status = status
-        self.page = page
-        self.page_size = page_size
+class SubmissionQueryParams(BaseModel):
+    user_id:Optional[int] = Field(None, description="用户id")
+    problem_id:Optional[str] = Field(None, description="题目id")
+    status:Optional[str] = Field(None, description="评测状态")
+    page:int = Field(0, description="页码", ge=0)
+    page_size:int = Field(10, description="每页大小", gt=0)

@@ -1,8 +1,7 @@
 from sqlalchemy.orm import Session
 from app.db.db_language import get_language_by_name
-from app.db.models import SubmissionModel, StatusCategory
+from app.db.models import SubmissionModel, StatusCategory, ProblemModel
 from app.schemas.submission import SubmissionAddPayload
-from app.schemas.problem import ProblemBase
 
 def add_submission(db:Session, submission:SubmissionAddPayload, _problem_id:int, user_id:int):
     submission_data = submission.model_dump()
@@ -25,15 +24,17 @@ def get_submission(db:Session, submission_id:int):
     db_submission = db.query(SubmissionModel).filter(SubmissionModel.id == submission_id).first()
     return db_submission
 
-def get_submission_list(db:Session, user_id:int, _problem_id:int, status:str, offset:int, limit:int):
+def get_submission_list(db:Session, user_id:int, problem_id:str, status:str, offset:int, limit:int):
     query = db.query(SubmissionModel)
 
     if user_id:
         query = query.filter(SubmissionModel.user_id == user_id)
 
-    if _problem_id:
-        query = query.filter(SubmissionModel._problem_id == _problem_id)
-
+    if problem_id:
+        query = query.join(
+            ProblemModel, SubmissionModel._problem_id == ProblemModel.id
+        ).filter(ProblemModel.problem_id == problem_id)
+    
     if status:
         query = query.filter(SubmissionModel.status == status)
 

@@ -1,5 +1,5 @@
-from typing import List, Optional
-from pydantic import BaseModel, Field
+from typing import List, Optional, Any
+from pydantic import BaseModel, Field, model_validator
 
 """Base"""
 class LanguageBase(BaseModel):
@@ -16,7 +16,17 @@ class LanguageBase(BaseModel):
 """Response"""
 class LanguageInfoResponse(BaseModel):
     name:str = Field(..., description="语言名称")
-    run_cmd:str = Field(..., description="运行命令")
+
+class LanguageInfoListResponse(BaseModel):
+    name: List[str]
+
+    @model_validator(mode='before')
+    @classmethod
+    def organize_data(cls, values: Any) -> Any:
+        if isinstance(values, list):
+            language_names = [lang.name for lang in values]
+            return {"name": language_names}
+        return values
 
 """Payload"""
 class LanguageAddPayload(LanguageBase):
