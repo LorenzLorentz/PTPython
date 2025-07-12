@@ -15,7 +15,7 @@ def test_register_language(client):
     language_data = {
         "name": "cpp",
         "file_ext": ".cpp",
-        "compile_cmd": "g++ -o main main.cpp -std=c++17",
+        "compile_cmd": "g++ -o main main.cpp -std=c++11",
         "run_cmd": "./main"
     }
     
@@ -46,7 +46,7 @@ def test_get_supported_languages(client):
     cpp_language = {
         "name": "cpp",
         "file_ext": ".cpp",
-        "compile_cmd": "g++ -o main main.cpp -std=c++17",
+        "compile_cmd": "g++ -o main main.cpp -std=c++11",
         "run_cmd": "./main"
     }
     

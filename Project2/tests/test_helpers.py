@@ -2,7 +2,7 @@
 import uuid
 
 
-def setup_admin_session(client, admin_username="admin", admin_password="admin"):
+def setup_admin_session(client, admin_username="admin", admin_password="admintestpassword"):
     """Helper to set up admin session for testing using proper login"""
     response = client.post("/api/auth/login", json={
         "username": admin_username,
