@@ -363,7 +363,7 @@ def test_data_export(client):
     assert response.status_code == 200
     data = response.json()
     assert data["code"] == 200
-    assert data["msg"] == "success"
+    assert data["msg"] == "import success"
     assert "data" in data
 
     # Verify export structure according to api.md
