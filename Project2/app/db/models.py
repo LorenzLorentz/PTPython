@@ -11,12 +11,14 @@ class CaseCategory(enum.Enum):
     TESTCASE = "testcase"
 
 class StatusCategory(enum.Enum):
-    PENDING = "pending"
     AC = "AC"
     WA = "WA"
     RE = "RE"
     TLE = "TLE"
     MLE = "MLE"
+    PENDING = "pending"
+    JUDGING = "judging"
+    ERROR = "error"
 
 """Models"""
 class UserModel(Base):

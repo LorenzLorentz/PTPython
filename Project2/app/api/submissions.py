@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, Request, Path
 from typing import List, Annotated, Union
-from datetime import datetime
 
 from app import db
 from app.db.database import get_db
@@ -30,6 +29,7 @@ async def submit(request:Request, payload:SubmissionAddPayload, db_session=Depen
     
     # 提交频率超限
 
+    # 向数据库中提交评测, 什么时候创建评测, 评测结束后如何更新数据库
     db_submission = db.db_submission.add_submission(db=db_session, submission=payload, _problem_id=db_problem.id, user_id=request.session.get("user_id"))
     return {"msg": "success", "data": db_submission}
 

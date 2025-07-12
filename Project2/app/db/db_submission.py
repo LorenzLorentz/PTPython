@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from app.db.db_language import get_language_by_name
 from app.db.models import SubmissionModel, StatusCategory, ProblemModel
 from app.schemas.submission import SubmissionAddPayload
+from app.judger.tasks import judge_submission
 
 def add_submission(db:Session, submission:SubmissionAddPayload, _problem_id:int, user_id:int):
     submission_data = submission.model_dump()
@@ -18,6 +19,8 @@ def add_submission(db:Session, submission:SubmissionAddPayload, _problem_id:int,
     db.commit()
     db.refresh(db_submission)
     
+    judge_submission.delay(db_submission.id)
+
     return db_submission
 
 def get_submission(db:Session, submission_id:int):
