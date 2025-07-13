@@ -447,7 +447,7 @@ def test_data_export_not_logged_in(client):
     reset_system(client)
 
     response = client.get("/api/export/")
-    assert response.status_code == 403  # According to api.md, should be 403 for admin-only endpoints
+    assert response.status_code == 401  # According to api.md, should be 401 for not logged in
 
 
 def test_system_reset(client):
@@ -497,7 +497,7 @@ def test_system_reset_not_logged_in(client):
     reset_system(client)
 
     response = client.post("/api/reset/")
-    assert response.status_code == 403  # According to api.md, should be 403 for admin-only endpoints
+    assert response.status_code == 401  # According to api.md, should be 401 for not logged in
 
 
 def test_export_reset_import_login_workflow(client):
