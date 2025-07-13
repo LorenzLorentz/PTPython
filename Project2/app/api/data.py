@@ -10,9 +10,8 @@ from app.api.utils.exception import APIException
 from app.schemas.response import ResponseModel
 from app.schemas.data import DataBase
 
-router = APIRouter()
-
-@router.post("/reset/", response_model=ResponseModel[None])
+reset_router = APIRouter()
+@reset_router.post("/", response_model=ResponseModel[None])
 async def reset(request:Request, db_session=Depends(get_db)):
     """系统重置"""
     if not check_admin(request=request, db_session=db_session):
@@ -23,7 +22,8 @@ async def reset(request:Request, db_session=Depends(get_db)):
     except Exception as e:
         raise APIException(status_code=500, msg="服务器异常")
 
-@router.get("/export/", response_model=ResponseModel[DataBase])
+export_router = APIRouter()
+@export_router.get("/", response_model=ResponseModel[DataBase])
 async def data_export(request:Request, db_session=Depends(get_db)):
     """数据导出"""
     if not check_admin(request=request, db_session=db_session):
@@ -35,7 +35,8 @@ async def data_export(request:Request, db_session=Depends(get_db)):
     except Exception as e:
         raise APIException(status_code=500, msg="服务器异常")
 
-@router.post("/import/", response_model=ResponseModel[None])
+import_router = APIRouter()
+@import_router.post("/", response_model=ResponseModel[None])
 async def data_import(request:Request, file:UploadFile=File(...), db_session=Depends(get_db)):
     """数据导入"""
     if not check_admin(request=request, db_session=db_session):
