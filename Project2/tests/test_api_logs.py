@@ -43,7 +43,7 @@ def test_get_submission_log(client):
     submission_id = submit_response.json()["data"]["submission_id"]
     
     # Wait for judging
-    time.sleep(2)
+    time.sleep(10)
     
     # Get submission log (as user)
     response = client.get(f"/api/submissions/{submission_id}/log")

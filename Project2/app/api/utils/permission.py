@@ -16,7 +16,7 @@ def check_login(request:Request, db_session:Session) -> bool:
     db_user = db.db_user.get_user(db=db_session, user_id=user_id)
     
     return db_user is not None
-    
+
 def check_banned(request:Request, db_session:Session) -> bool:
     user_id = request.session.get("user_id")
     db_user = db.db_user.get_user(db=db_session, user_id=user_id)

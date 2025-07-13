@@ -19,12 +19,11 @@ class TestCaseResultDetail(TestCaseResult):
 
 class SubmissionBase(BaseModel):
     submission_id:int = Field(..., validation_alias="id", description="评测id")
-    problem_id:str = Field(..., description="题目编号")
-    language_name:str = Field(..., description="语言")
-    code:str = Field(..., description="用户代码内容")
     user_id:int = Field(..., decimal_places="用户id")
-    submission_id:int = Field(..., description="评测id")
+    problem_id:str = Field(..., description="题目编号")
+    language_name:str = Field(..., serialization_alias="language",description="语言")
     
+    code:str = Field(..., description="用户代码内容")
     status:str = Field(..., description="评测状态")    
     score:Optional[int] = Field(..., description="测试点分数")
     counts:Optional[int] = Field(..., description="总分数")
@@ -72,6 +71,7 @@ class SubmissionLogResponse(BaseModel):
     counts:Optional[int] = Field(..., description="总分数")
 
     model_config = ConfigDict(from_attributes=True)
+    model_config['from_attributes']=True
 
 class SubmissionLogDetailResponse(BaseModel):
     test_cases:List[TestCaseResultDetail] = Field(..., validation_alias='test_case_results', serialization_alias='status', description="各测试点详细评测状态")
@@ -79,6 +79,7 @@ class SubmissionLogDetailResponse(BaseModel):
     counts:Optional[int] = Field(..., description="总分数")
 
     model_config = ConfigDict(from_attributes=True)
+    model_config['from_attributes']=True
 
 """Payload"""
 class SubmissionAddPayload(BaseModel):
