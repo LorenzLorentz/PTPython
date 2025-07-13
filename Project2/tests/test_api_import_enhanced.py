@@ -20,8 +20,8 @@ def test_data_import_complete_verification(client):
                 "password": "placeholder_hash_imported_user1",  # Placeholder password hash
                 "role": "user",
                 "join_time": "2024-01-01",  # API uses date format
-                "submit_count": 5,
-                "resolve_count": 3
+                "submit_count": 1,
+                "resolve_count": 1
             },
             {
                 "user_id": "101",
@@ -29,8 +29,8 @@ def test_data_import_complete_verification(client):
                 "password": "placeholder_hash_imported_admin",  # Placeholder password hash
                 "role": "admin",
                 "join_time": "2024-01-01",  # API uses date format
-                "submit_count": 10,
-                "resolve_count": 8
+                "submit_count": 0,
+                "resolve_count": 0
             }
         ],
         "problems": [
