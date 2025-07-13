@@ -15,18 +15,18 @@ from app.schemas.problem import Case
 client = docker.from_env()
 
 DOCKER_IMAGE = {
-    "cpp": "gcc:latest", 
-    "python": "python:3.10-slim"
+    "cpp": "gcc:11.2.0-bullseye", 
+    "python": "python:3.10.14-bookworm"
 }
 
-WORKDIR_BASE = "/tmp/" 
+WORKDIR_BASE = os.path.expanduser("~/tmp/")
 os.makedirs(WORKDIR_BASE, exist_ok=True)
 
 STATUS_PRECEDENCE = {
     StatusCategory.AC: 0,
     StatusCategory.WA: 1,
     StatusCategory.RE: 2,
-    StatusCategory.TL: 3,
+    StatusCategory.TLE: 3,
     StatusCategory.MLE: 4,
     StatusCategory.CE: 5,
     StatusCategory.JUDGING: 6,
@@ -37,6 +37,9 @@ STATUS_PRECEDENCE = {
 
 @celery_app.task(name="tasks.eval", bind=True)
 def eval(self, submission_id:int):
+    with open("error.log", "a") as f:
+        print("THERE 0", file=f)
+
     db = SessionLocal()
     db_submission = db.query(SubmissionModel).filter(SubmissionModel.id == submission_id).first()
 
@@ -70,12 +73,12 @@ def eval(self, submission_id:int):
                 )
 
                 if not os.path.exists(os.path.join(work_dir, db_submission.language.exe_name)):
-                    error(submission_id, StatusCategory.CE, work_dir, error_message="Compiler did not produce an executable.")
+                    error(submission_id, StatusCategory.CE, work_dir, err_msg="Compiler did not produce an executable.")
                     return
 
             except docker.errors.ContainerError as e:
                 error_message = e.stderr.decode('utf-8', errors='ignore') if e.stderr else str(e)
-                error(submission_id, StatusCategory.CE, work_dir, error_message=error_message)
+                error(submission_id, StatusCategory.CE, work_dir, err_msg=error_message)
                 return
 
         db_submission.status = StatusCategory.JUDGING
@@ -97,7 +100,9 @@ def eval(self, submission_id:int):
         workflow.apply_async()
 
     except Exception as e:
-        error(submission_id, StatusCategory.UNK, work_dir, error_message=str(e))
+        with open("error.log", "a") as f:
+            print("THERE 1", file=f)
+        error(submission_id, StatusCategory.UNK, work_dir, err_msg=str(e))
     finally:
         db.close()
 

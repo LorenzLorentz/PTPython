@@ -147,6 +147,7 @@ def test_get_submissions_list(client):
 
     client.post("/api/submissions/", json=submission_data)
 
+    setup_admin_session(client=client)
     # Get submissions list - must provide user_id or problem_id according to api.md
     # Test with problem_id (one of the required primary conditions)
     response = client.get(f"/api/submissions/?problem_id={problem_id}")

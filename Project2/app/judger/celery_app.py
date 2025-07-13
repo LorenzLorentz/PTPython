@@ -16,7 +16,7 @@ celery_app.conf.update(
 )
 
 celery_app.conf.task_routes = {
-    'tasks.compile_task': {'queue': 'compile_queue'},
+    'tasks.eval': {'queue': 'compile_queue'},
     'tasks.run_task': {'queue': 'judge_queue'},
     'tasks.collect_results_task': {'queue': 'judge_queue'},
 }
