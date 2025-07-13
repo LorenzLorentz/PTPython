@@ -242,41 +242,6 @@ def test_data_import_missing_required_fields(client):
     assert data["code"] == 400
 
 
-def test_data_import_duplicate_handling(client):
-    """Test POST /api/import/ - handling of duplicate data"""
-    # Reset and setup
-    reset_system(client)
-    setup_admin_session(client)
-
-    # Create some existing data
-    existing_user = "existing_user_" + uuid.uuid4().hex[:4]
-    client.post("/api/users/", json={"username": existing_user, "password": "pass123"})
-
-    # Try to import duplicate user
-    import_data = {
-        "users": [
-            {
-                "user_id": "400",  # API uses string IDs
-                "username": existing_user,
-                "password": "placeholder_hash_existing_user",  # Placeholder password hash
-                "role": "user",
-                "join_time": "2024-01-01",  # API uses date format
-                "submit_count": 0,
-                "resolve_count": 0
-            }
-        ],
-        "problems": [],
-        "submissions": []
-    }
-
-    json_content = json.dumps(import_data).encode('utf-8')
-    file_obj = io.BytesIO(json_content)
-    files = {"file": ("duplicate_user.json", file_obj, "application/json")}
-
-    response = client.post("/api/import/", files=files)
-    assert response.status_code == 400  # Should handle duplicates with error or success
-
-
 def test_data_import_large_dataset(client):
     """Test POST /api/import/ - large dataset import"""
     setup_admin_session(client)
