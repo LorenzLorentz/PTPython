@@ -425,7 +425,7 @@ def test_data_export(client):
         assert "problem_id" in submission
         assert "language" in submission
         assert "code" in submission
-        assert "status" in submission
+        assert "details" in submission
         assert "score" in submission
         assert "counts" in submission
 

@@ -55,7 +55,7 @@ def test_get_submission_log(client):
     assert isinstance(data["data"], dict)
     
     # Check the new API spec structure
-    assert "status" in data["data"]
+    assert "details" in data["data"]
     assert "score" in data["data"]
     assert "counts" in data["data"]
     
