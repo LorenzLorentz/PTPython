@@ -184,17 +184,6 @@ def run_task(test_case_result_id:int, case_id:int, work_dir:str, run_cmd:str, la
         elif stdout.rstrip() != test_case_output.rstrip():
             result_status = "WA"
 
-        with open("error.log", "a") as f:
-            print({
-                "test_case_result_id": test_case_result_id,
-                "result": result_status,
-                "time": time_used,
-                "memory": memory_used,
-                "output": stdout,
-                "err_msg": err_msg,
-                "case_id": case_id,
-            }, file=f)
-
         return {
             "test_case_result_id": test_case_result_id,
             "result": result_status,
@@ -242,6 +231,9 @@ def collect_results_task(test_case_results:List[Dict[str, Any]], submission_id:i
         test_case_results = [test_case_results]
     
     for test_case_result in test_case_results:
+        with open("error.log", "a") as f:
+            print(test_case_result, file=f)
+
         max_time = max(max_time, test_case_result.get("time", 0))
         max_memory = max(max_memory, test_case_result.get("memory", 0))
         result = STATUS_DICT.get(test_case_result["result"], StatusCategory.UNK)
@@ -262,7 +254,7 @@ def collect_results_task(test_case_results:List[Dict[str, Any]], submission_id:i
     db_submission.score = 10*counts
 
     with open("error.log", "a") as f:
-        print(max_time, max_memory, result, counts, db_submission.counts, file=f)
+        print(max_time, max_memory, result, counts, db_submission.counts, db_submission.score, file=f)
     
     db_submission.test_case_results = [
         TestCaseResultModel(submission_id=submission_id, **test_case_result) for test_case_result in test_case_results

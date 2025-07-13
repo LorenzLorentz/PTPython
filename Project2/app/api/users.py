@@ -8,7 +8,7 @@ from app.schemas.user import(
     UserAddPayload, UserQueryParams, UserRolePayload
 )
 from app.schemas.response import ResponseModel
-from app.api.utils.permission import check_admin, check_login
+from app.api.utils.permission import check_admin, check_login, check_self
 from app.api.utils.exception import APIException
 
 router = APIRouter()
@@ -57,7 +57,7 @@ async def get_user(request:Request, user_id:int, db_session=Depends(get_db)):
     if not check_login(request=request, db_session=db_session):
         raise APIException(status_code=401, msg="未登录")
     
-    if not check_admin(request=request, db_session=db_session):
+    if not check_self(request=request, user_id=user_id) and not check_admin(request=request, db_session=db_session):
         raise APIException(status_code=403, msg="权限不足")
     
     db_user = db.db_user.get_user(db=db_session, user_id=user_id)

@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
-from app.db.models import UserModel, ProblemModel, SubmissionModel
-from app.schemas.data import DataExport
+from app.db.models import UserModel, ProblemModel, SubmissionModel, SampleModel, CaseModel, LanguageModel, TestCaseResultModel
+from app.schemas.data import DataImport
 from app.api.utils.data import seed_ini_data
 
 def reset(db:Session):
@@ -28,52 +28,54 @@ def get_data(db:Session):
         "submissions": submissions
     }
 
-def set_data(db:Session, data:DataExport):
+def set_data(db:Session, data:DataImport):
     try:
-        user_map = {} # key: username, value: user_db_id
-        problem_map = {} # key: problem_source_id or title, value: problem_db_id
-
-        for user in data.users: # 不提供主键
-            existing_user = db.query(UserModel).filter(UserModel.username == user.username).first()
-
-            if existing_user:
-                # 用户已存在，直接将数据库中的ID存入map
-                user_map[user_data.username] = existing_user.id
-                # 可选：如果需要，可以在这里用新数据更新旧用户
-                # existing_user.email = user_data.email
-                # db.add(existing_user)
-            else:
-                new_user = UserModel(**user_data.model_dump(exclude={'id'}))
-                db.add(new_user)
-                # 重要：必须 flush 来获取新生成的 ID，但不要 commit
-                db.flush() 
-                user_map[user_data.username] = new_user.id
-
+        for user in data.users:
             user_data = user.model_dump()
-            
-            username = user_data.pop("username")
-            hashed_password = user_data.pop("password", "")
-            role = user_data.pop("role", "user")
-            db_user = UserModel(username=username, hashed_password=hashed_password, role=role, **user_data)
-            
+            user_id = user_data.pop("user_id", 0)
+            db_user = UserModel(id=user_id, **user_data)
             db.merge(db_user)
 
-        for problem in data.problems: # 主键不作为判重标准
-            problem_data= problem.model_dump()
-            testcases_data = problem_data.pop("testcases", [])
+        for problem in data.problems:
+            problem_data = problem.model_dump()
             samples_data = problem_data.pop("samples", [])
-            db_problem = ProblemModel(**problem_data)
-            db_problem.testcases = [CaseModel(**case) for case in testcases_data]
-            db_problem.samples = [SampleModel(**sample) for sample in samples_data]
-            problem_model = ProblemModel(**problem_data)
-            db.merge(problem_model)
+            testcases_data = problem_data.pop("testcases", [])
+            exist = db.query(ProblemModel).filter(ProblemModel.problem_id == problem.problem_id).first()
 
-        for submission_data in data.submissions:
-            submission_model = SubmissionModel(**submission_data.model_dump())
-            db.merge(submission_model)
+            db_problem = None
+            if exist is None:
+                db_problem = ProblemModel(**problem_data)
+            else:
+                db_problem = exist
+
+            db_problem.samples = [SampleModel(**sample_data) for sample_data in samples_data]
+            db_problem.testcases = [CaseModel(**testcase_data) for testcase_data in testcases_data]
+
+            if exist is None:
+                db.add(db_problem)
+
+        db.commit()
+
+        for submission in data.submissions:
+            submission_data = submission.model_dump()
+            
+            problem_id = submission_data.pop("problem_id")
+            db_problem = db.query(ProblemModel).filter(ProblemModel.problem_id == problem_id).first()
+            language_name = submission_data.pop("language_name")
+            db_language = db.query(LanguageModel).filter(LanguageModel.name == language_name).first()
+            
+            test_case_results_data = submission_data.pop("test_case_results", [])
+            
+            db_submission = SubmissionModel(user_id=submission.user_id, _problem_id=db_problem.id, language_id=db_language.id, **submission_data)
+            db_submission.test_case_results = [TestCaseResultModel(**test_case_result_data) for test_case_result_data in test_case_results_data]
+
+            db.merge(db_submission)
         
         db.commit()
     
     except Exception as e:
+        with open("error.log", "a") as f:
+            print(e, file=f)
+
         db.rollback()
         raise e

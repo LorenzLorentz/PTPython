@@ -6,7 +6,7 @@ def get_problem(db:Session, problem_id:str):
     return db.query(ProblemModel).filter(ProblemModel.problem_id == problem_id).first()
 
 def get_problem_by_id(db:Session, _problem_id:int):
-    return db.query(ProblemModel).filter(ProblemModel.id == _problem_id).first()
+    return db.get(ProblemModel, _problem_id)
 
 def get_problem_list(db:Session):
     return db.query(ProblemModel).all()

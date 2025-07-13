@@ -37,6 +37,9 @@ pip install -r requirements.txt
 # 运行全部测试
 python -m pytest tests/ -v
 
+python -m pytest tests/test_api_submissions.py::test_get_submission_result -v
+python -m pytest tests/test_api_logs.py::test_get_submission_log -v
+
 # 运行指定模块测试
 python -m pytest tests/test_api_problems.py -v
 

@@ -1,7 +1,7 @@
 import uuid
 import time
 import pytest
-from test_helpers import setup_admin_session, setup_user_session
+from test_helpers import setup_admin_session, setup_user_session, reset_system
 
 
 def test_submit_solution(client):
@@ -55,6 +55,7 @@ def test_submit_solution(client):
 
 def test_get_submission_result(client):
     """Test GET /api/submissions/{submission_id}"""
+    reset_system(client)
     # Set up admin session
     setup_admin_session(client)
 

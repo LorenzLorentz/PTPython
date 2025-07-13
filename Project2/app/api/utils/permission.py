@@ -13,9 +13,16 @@ def check_admin(request:Request, db_session:Session) -> bool:
 
 def check_login(request:Request, db_session:Session) -> bool:
     user_id = request.session.get("user_id")
+
+    if user_id is None:
+        return False
+
     db_user = db.db_user.get_user(db=db_session, user_id=user_id)
     
     return db_user is not None
+
+def check_self(request:Request, user_id:int) -> bool:
+    return user_id == request.session.get("user_id")
 
 def check_banned(request:Request, db_session:Session) -> bool:
     user_id = request.session.get("user_id")

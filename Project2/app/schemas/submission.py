@@ -22,15 +22,15 @@ class TestCaseResultDetail(TestCaseResult):
     model_config = ConfigDict(from_attributes=True)
 
 class SubmissionBase(BaseModel):
-    submission_id:int = Field(..., validation_alias="id", description="评测id")
+    submission_id:int = Field(..., description="评测id")
     user_id:int = Field(..., description="用户id")
     problem_id:str = Field(..., description="题目编号")
-    language_name:str = Field(..., serialization_alias="language",description="语言")
+    language_name:str = Field(..., description="语言")
     
     code:str = Field(..., description="用户代码内容")
     status:str = Field(..., description="评测状态")    
-    score:Optional[int] = Field(..., description="测试点分数")
-    counts:Optional[int] = Field(..., description="总分数")
+    score:int = Field(0, description="测试点分数")
+    counts:int = Field(0, description="总分数")
     time:Optional[float] = Field(..., description="用时")
     memory:Optional[int] = Field(..., description="内存占用")
 

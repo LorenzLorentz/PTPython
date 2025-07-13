@@ -119,7 +119,7 @@ class TestCaseResultModel(Base):
 
     # ForeignKey
     submission_id = Column(Integer, ForeignKey("submissions.id"), index=True, nullable=False)
-    case_id = Column(Integer, ForeignKey("cases.id"), index=True, nullable=False)
+    case_id = Column(Integer, ForeignKey("cases.id"), nullable=True)
 
     # Relationships
     submission = relationship("SubmissionModel", back_populates="test_case_results")
