@@ -28,14 +28,14 @@ class TestAuth:
         client.post("/api/auth/login", json={"username": "admin", "password": "admintestpassword"})
         client.post("/api/users/", json={
             "username": "testuser",
-            "password": "admintestpassword"
+            "password": "testpassword"
         })
         client.post("/api/auth/logout")
 
         # Now test user login
         response = client.post("/api/auth/login", json={
             "username": "testuser",
-            "password": "admintestpassword"
+            "password": "testpassword"
         })
         assert response.status_code == 200
         data = response.json()
@@ -48,7 +48,7 @@ class TestAuth:
         """Test login with invalid username"""
         response = client.post("/api/auth/login", json={
             "username": "nonexistent",
-            "password": "admintestpassword"
+            "password": "testpassword"
         })
         assert response.status_code == 401
         data = response.json()
@@ -58,7 +58,7 @@ class TestAuth:
         """Test login with invalid password"""
         response = client.post("/api/auth/login", json={
             "username": "admin",
-            "password": "wrongpass"
+            "password": "wrongpassword"
         })
         assert response.status_code == 401
         data = response.json()

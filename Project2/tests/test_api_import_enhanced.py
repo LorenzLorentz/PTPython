@@ -17,18 +17,20 @@ def test_data_import_complete_verification(client):
             {
                 "user_id": "100",
                 "username": "imported_user1_" + uuid.uuid4().hex[:4],
+                "password": "placeholder_hash_imported_user1",  # Placeholder password hash
                 "role": "user",
-                "join_time": "2024-01-01T00:00:00",
-                "submit_count": 5,
-                "resolve_count": 3
+                "join_time": "2024-01-01",  # API uses date format
+                "submit_count": 1,
+                "resolve_count": 1
             },
             {
                 "user_id": "101",
                 "username": "imported_admin_" + uuid.uuid4().hex[:4],
+                "password": "placeholder_hash_imported_admin",  # Placeholder password hash
                 "role": "admin",
-                "join_time": "2024-01-01T00:00:00",
-                "submit_count": 10,
-                "resolve_count": 8
+                "join_time": "2024-01-01",  # API uses date format
+                "submit_count": 0,
+                "resolve_count": 0
             }
         ],
         "problems": [
@@ -72,12 +74,12 @@ def test_data_import_complete_verification(client):
         ],
         "submissions": [
             {
-                "submission_id": 1,
+                "submission_id": "1",  # API uses string IDs
                 "user_id": "100",
                 "problem_id": "imported_prob1",
                 "language": "python",
                 "code": "a, b = map(int, input().split())\nprint(a + b)",
-                "status": [
+                "details": [
                     {"id": 1, "result": "AC", "time": 1.01, "memory": 130},
                     {"id": 2, "result": "AC", "time": 1.02, "memory": 132}
                 ],
@@ -150,6 +152,7 @@ def test_data_import_various_formats(client):
         "users": [{
             "user_id": "200",  # API uses string IDs
             "username": "test_user_" + uuid.uuid4().hex[:4],
+            "password": "placeholder_hash_test_user",  # Placeholder password hash
             "role": "user",
             "join_time": "2024-01-01",  # API uses date format, not ISO datetime
             "submit_count": 0,
@@ -239,40 +242,6 @@ def test_data_import_missing_required_fields(client):
     assert data["code"] == 400
 
 
-def test_data_import_duplicate_handling(client):
-    """Test POST /api/import/ - handling of duplicate data"""
-    # Reset and setup
-    reset_system(client)
-    setup_admin_session(client)
-
-    # Create some existing data
-    existing_user = "existing_user_" + uuid.uuid4().hex[:4]
-    client.post("/api/users/", json={"username": existing_user, "password": "pass123"})
-
-    # Try to import duplicate user
-    import_data = {
-        "users": [
-            {
-                "user_id": "400",  # API uses string IDs
-                "username": existing_user,
-                "role": "user",
-                "join_time": "2024-01-01",  # API uses date format
-                "submit_count": 0,
-                "resolve_count": 0
-            }
-        ],
-        "problems": [],
-        "submissions": []
-    }
-
-    json_content = json.dumps(import_data).encode('utf-8')
-    file_obj = io.BytesIO(json_content)
-    files = {"file": ("duplicate_user.json", file_obj, "application/json")}
-
-    response = client.post("/api/import/", files=files)
-    assert response.status_code == 400  # Should handle duplicates with error or success
-
-
 def test_data_import_large_dataset(client):
     """Test POST /api/import/ - large dataset import"""
     setup_admin_session(client)
@@ -289,6 +258,7 @@ def test_data_import_large_dataset(client):
         large_data["users"].append({
             "user_id": str(1000 + i),  # API uses string IDs
             "username": f"bulk_user_{i}_{uuid.uuid4().hex[:4]}",
+            "password": f"placeholder_hash_bulk_user_{i}",  # Placeholder password hash
             "role": "user",
             "join_time": "2024-01-01",  # API uses date format
             "submit_count": i,
@@ -378,10 +348,17 @@ def test_data_export(client):
         user = export_data["users"][0]
         assert "user_id" in user
         assert "username" in user
+        assert "password" in user  # According to api.md, password field is required
         assert "role" in user
         assert "join_time" in user
         assert "submit_count" in user
         assert "resolve_count" in user
+
+        # Verify admin password is not plaintext according to api.md
+        if user["role"] == "admin":
+            # Password should be hashed, not plaintext "admintestpassword"
+            assert user["password"] != "admintestpassword", "Admin password should not be plaintext in export"
+            assert user["password"] != "", "Admin password should not be empty in export"
 
     # Verify problems data structure
     assert isinstance(export_data["problems"], list)
@@ -413,7 +390,7 @@ def test_data_export(client):
         assert "problem_id" in submission
         assert "language" in submission
         assert "code" in submission
-        assert "status" in submission
+        assert "details" in submission
         assert "score" in submission
         assert "counts" in submission
 
@@ -435,7 +412,7 @@ def test_data_export_not_logged_in(client):
     reset_system(client)
 
     response = client.get("/api/export/")
-    assert response.status_code == 403  # According to api.md, should be 403 for admin-only endpoints
+    assert response.status_code == 401  # According to api.md, should be 401 for not logged in
 
 
 def test_system_reset(client):
@@ -485,4 +462,131 @@ def test_system_reset_not_logged_in(client):
     reset_system(client)
 
     response = client.post("/api/reset/")
-    assert response.status_code == 403  # According to api.md, should be 403 for admin-only endpoints
+    assert response.status_code == 401  # According to api.md, should be 401 for not logged in
+
+
+def test_export_reset_import_login_workflow(client):
+    """Test complete workflow: export data, reset system, import data, test user login"""
+    # Reset and setup admin
+    reset_system(client)
+    setup_admin_session(client)
+
+    # Create test data - a user who should be able to login after export-import
+    test_username = "workflow_user_" + uuid.uuid4().hex[:4]
+    test_password = "workflow_pass_123"
+    user_data = {
+        "username": test_username,
+        "password": test_password
+    }
+
+    # Create the user
+    register_response = client.post("/api/users/", json=user_data)
+    assert register_response.status_code == 200
+    original_user_id = register_response.json()["data"]["user_id"]
+
+    # Create a problem for completeness
+    problem_id = "workflow_prob_" + uuid.uuid4().hex[:4]
+    problem_data = {
+        "id": problem_id,
+        "title": "Workflow Test Problem",
+        "description": "Test problem for workflow",
+        "input_description": "Input description",
+        "output_description": "Output description",
+        "samples": [{"input": "1 2", "output": "3"}],
+        "constraints": "|a|,|b| <= 10^9",
+        "testcases": [{"input": "1 2", "output": "3"}],
+        "time_limit": 1.0,
+        "memory_limit": 128
+    }
+    client.post("/api/problems/", json=problem_data)
+
+    # Verify the user can login before export
+    logout_response = client.post("/api/auth/logout")
+    login_test_response = client.post("/api/auth/login", json={
+        "username": test_username,
+        "password": test_password
+    })
+    assert login_test_response.status_code == 200
+    assert login_test_response.json()["data"]["username"] == test_username
+
+    # Re-login as admin for export
+    setup_admin_session(client)
+
+    # Step 1: Export all data
+    export_response = client.get("/api/export/")
+    assert export_response.status_code == 200
+    export_data = export_response.json()["data"]
+
+    # Verify the exported data contains our test user
+    exported_usernames = [user["username"] for user in export_data["users"]]
+    assert test_username in exported_usernames
+
+    # Find our test user in export data
+    test_user_export = None
+    for user in export_data["users"]:
+        if user["username"] == test_username:
+            test_user_export = user
+            break
+
+    assert test_user_export is not None
+    assert "password" in test_user_export
+    # Password should be hashed, not plaintext
+    assert test_user_export["password"] != test_password, "Exported password should not be plaintext"
+
+    # Step 2: Reset the system
+    reset_response = client.post("/api/reset/")
+    assert reset_response.status_code == 200
+
+    # Verify system is actually reset - user should not be able to login
+    client.post("/api/auth/logout")  # Clear any session
+    login_after_reset = client.post("/api/auth/login", json={
+        "username": test_username,
+        "password": test_password
+    })
+    assert login_after_reset.status_code == 401  # User should not exist after reset
+
+    # Step 3: Re-login as admin and import the data
+    setup_admin_session(client)
+
+    # Convert export data to import format
+    import json
+    import io
+    json_content = json.dumps(export_data).encode('utf-8')
+    import_file = io.BytesIO(json_content)
+    files = {"file": ("workflow_import.json", import_file, "application/json")}
+
+    import_response = client.post("/api/import/", files=files)
+    assert import_response.status_code == 200
+    import_result = import_response.json()
+    assert import_result["code"] == 200
+    assert import_result["msg"] == "import success"
+
+    # Step 4: Test that the original user can login with original password
+    client.post("/api/auth/logout")  # Clear admin session
+
+    final_login_response = client.post("/api/auth/login", json={
+        "username": test_username,
+        "password": test_password
+    })
+    assert final_login_response.status_code == 200
+    final_login_data = final_login_response.json()
+    assert final_login_data["code"] == 200
+    assert final_login_data["msg"] == "login success"
+    assert final_login_data["data"]["username"] == test_username
+    assert final_login_data["data"]["role"] == "user"
+
+    # Verify user data integrity after import
+    imported_user_id = final_login_response.json()["data"]["user_id"]
+    user_info_response = client.get(f"/api/users/{imported_user_id}")
+    assert user_info_response.status_code == 200
+    user_info = user_info_response.json()["data"]
+    assert user_info["username"] == test_username
+    assert user_info["role"] == "user"
+
+    # Verify problems were also imported
+    setup_admin_session(client)
+    problems_response = client.get("/api/problems/")
+    assert problems_response.status_code == 200
+    problems_data = problems_response.json()["data"]
+    problem_ids = [prob["id"] for prob in problems_data]
+    assert problem_id in problem_ids

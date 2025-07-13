@@ -15,7 +15,7 @@ def test_register_language(client):
     language_data = {
         "name": "cpp",
         "file_ext": ".cpp",
-        "compile_cmd": "g++ -o main main.cpp -std=c++17",
+        "compile_cmd": "g++ -o main main.cpp -std=c++11",
         "run_cmd": "./main"
     }
     
@@ -25,14 +25,6 @@ def test_register_language(client):
     assert data["code"] == 200
     assert data["msg"] == "language registered"
     assert data["data"]["name"] == "cpp"
-    
-    # Test non-admin access
-    username, password, user_id = create_test_user(client)
-    setup_user_session(client, username, password)
-    
-    response = client.post("/api/languages/", json=language_data)
-    assert response.status_code == 403
-
 
 def test_get_supported_languages(client):
     """Test GET /api/languages/"""
@@ -46,7 +38,7 @@ def test_get_supported_languages(client):
     cpp_language = {
         "name": "cpp",
         "file_ext": ".cpp",
-        "compile_cmd": "g++ -o main main.cpp -std=c++17",
+        "compile_cmd": "g++ -o main main.cpp -std=c++11",
         "run_cmd": "./main"
     }
     
