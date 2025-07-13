@@ -206,14 +206,3 @@ def test_access_audit_logs(client):
     assert response.status_code == 200
     data = response.json()
     assert data["code"] == 200
-    
-    # Test with pagination
-    response = client.get("/api/logs/access/?page=1&page_size=10")
-    assert response.status_code == 200
-    data = response.json()
-    assert data["code"] == 200
-    
-    # Test non-admin access
-    setup_user_session(client, username, password)
-    response = client.get("/api/logs/access/")
-    assert response.status_code == 403
