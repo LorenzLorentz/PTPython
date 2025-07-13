@@ -131,7 +131,7 @@ class SubmissionModel(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     code = Column(Text, nullable=False)
     status = Column(Enum(StatusCategory), default=StatusCategory.PENDING, index=True, nullable=False)
-    score = Column(Integer, default=10, nullable=False)
+    score = Column(Integer, default=0, nullable=False)
     counts = Column(Integer, default=0, nullable=False)
     time = Column(Float, default=0.0, nullable=False)
     memory = Column(Integer, default=0, nullable=False)

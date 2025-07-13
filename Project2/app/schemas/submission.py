@@ -19,7 +19,7 @@ class TestCaseResultDetail(TestCaseResult):
 
 class SubmissionBase(BaseModel):
     submission_id:int = Field(..., validation_alias="id", description="评测id")
-    user_id:int = Field(..., decimal_places="用户id")
+    user_id:int = Field(..., description="用户id")
     problem_id:str = Field(..., description="题目编号")
     language_name:str = Field(..., serialization_alias="language",description="语言")
     

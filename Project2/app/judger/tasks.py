@@ -3,14 +3,17 @@ import os
 import shutil
 import time
 from typing import List, Dict, Any
-from celery import group, chain
+from celery import group, chain, current_app
+from celery.signals import worker_process_init
 from requests.exceptions import ReadTimeout
 
 from app.judger.celery_app import celery_app
 from app.db.database import SessionLocal
 from app.db.models import SubmissionModel, StatusCategory, TestCaseResultModel, LanguageModel, ProblemModel
-from app.schemas.language import LanguageBase
-from app.schemas.problem import Case
+
+@worker_process_init.connect(weak=False)
+def init_docker_client(**kwargs):
+    current_app.docker_client = docker.from_env(timeout=10)
 
 DOCKER_IMAGE = {
     "cpp": "gcc-judge:latest", 
@@ -48,7 +51,7 @@ STATUS_DICT = {
 
 @celery_app.task(name="tasks.eval", bind=True)
 def eval(self, submission_id:int):
-    client = docker.from_env()
+    client = current_app.docker_client
     db = SessionLocal()
     db_submission = db.query(SubmissionModel).filter(SubmissionModel.id == submission_id).first()
     db_language = db.query(LanguageModel).filter(LanguageModel.id == db_submission.language_id).first()
@@ -64,6 +67,7 @@ def eval(self, submission_id:int):
     if not db_submission:
         return
 
+    db_submission.counts = 10*len(db_problem.testcases)
     db_submission.status = StatusCategory.COMPILING
     db.commit()
 
@@ -124,7 +128,7 @@ def eval(self, submission_id:int):
 
 @celery_app.task(name="tasks.run_task")
 def run_task(test_case_result_id:int, case_id:int, work_dir:str, run_cmd:str, language_name:str, test_case_input:str, test_case_output:str, time_limit:float, memory_limit:int) -> Dict[str, Any]:
-    client = docker.from_env()
+    client = current_app.docker_client
     input_path = os.path.join(work_dir, f"{test_case_result_id}.in")
     with open(input_path, "w") as f:
         f.write(test_case_input)
@@ -255,7 +259,7 @@ def collect_results_task(test_case_results:List[Dict[str, Any]], submission_id:i
     db_submission.status = final_status
     db_submission.time = max_time
     db_submission.memory = max_memory
-    db_submission.counts = counts*db_submission.score
+    db_submission.score = 10*counts
 
     with open("error.log", "a") as f:
         print(max_time, max_memory, result, counts, db_submission.counts, file=f)

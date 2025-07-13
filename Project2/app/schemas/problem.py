@@ -10,7 +10,7 @@ class Case(BaseModel):
 
 class ProblemBase(BaseModel):
     # 必填字段
-    problem_id:str = Field(..., validation_alias="id", serialization_alias="id", description="题目唯一标识")
+    problem_id:str = Field(..., description="题目唯一标识")
     title:str = Field(..., description="题目标题")
     description:str = Field(..., description="题目描述")
     input_description:str = Field(..., description="输入格式说明")
@@ -54,7 +54,7 @@ class ProblemLogVisibilityResponse(BaseModel):
 
 """Payload"""
 class ProblemAddPayload(ProblemBase):
-    pass
+    problem_id:str = Field(..., validation_alias="id", description="题目唯一标识")
 
 class ProblemSetLogVisibilityPayload(BaseModel):
     public_cases:bool = Field(..., description="是否允许所有用户查看测例详情")

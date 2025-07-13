@@ -7,11 +7,11 @@ from fastapi import Query
 class UserBase(BaseModel):
     user_id:int = Field(..., validation_alias="id", description="用户id")
     username:str = Field(..., description="用户名")
-    hashed_password:str = Field(..., serialization_alias="password", description="密码")
+    hashed_password:str = Field("", serialization_alias="password", description="密码")
     role:str = Field(..., description="权限")
-    join_time:datetime = Field(..., description="加入时间")
-    submit_count:int = Field(..., description="提交次数")
-    resolve_count:int = Field(..., description="解决问题数")
+    join_time:datetime = Field(datetime.now(), description="加入时间")
+    submit_count:int = Field(0, description="提交次数")
+    resolve_count:int = Field(0, description="解决问题数")
 
     model_config = ConfigDict(from_attributes=True)
 
