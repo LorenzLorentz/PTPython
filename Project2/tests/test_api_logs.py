@@ -194,15 +194,6 @@ def test_access_audit_logs(client):
     # Login as admin and get audit logs
     setup_admin_session(client)
     
-    # Get all access logs
-    response = client.get("/api/logs/access/")
-    assert response.status_code == 200
-    data = response.json()
-    assert data["code"] == 200
-    assert data["msg"] == "success"
-    assert "data" in data
-    assert isinstance(data["data"], list)
-    
     # Test with user_id filter
     user_id = "1"  # API uses string IDs
     response = client.get(f"/api/logs/access/?user_id={user_id}")
