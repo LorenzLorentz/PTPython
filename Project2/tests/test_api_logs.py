@@ -64,11 +64,11 @@ def test_get_submission_log(client):
     assert data["data"]["score"] == 20  # 2 test cases × 10 points each
     assert data["data"]["counts"] == 20  # Total possible points
     
-    # Check status array has exactly 2 test cases with specific expected results
-    assert len(data["data"]["status"]) == 2  # Should have exactly 2 test cases
+    # Check details array has exactly 2 test cases with specific expected results
+    assert len(data["data"]["details"]) == 2  # Should have exactly 2 test cases
     
     # Sort by id to ensure consistent ordering
-    status_items = sorted(data["data"]["status"], key=lambda x: x["id"])
+    status_items = sorted(data["data"]["details"], key=lambda x: x["id"])
     
     # Test case 1: input "1 2" -> output "3" (should be AC)
     assert status_items[0]["id"] == 1
