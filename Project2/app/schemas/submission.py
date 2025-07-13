@@ -7,15 +7,19 @@ from app.schemas.problem import Case
 
 """Base"""
 class TestCaseResult(BaseModel):
-    id:int = Field(..., description="测试点id")
+    id:int = Field(..., validation_alias="test_case_result_id", description="测试点id")
     result:str = Field(..., description="测试点结果")
     time:float = Field(..., description="测试点用时")
     memory:int = Field(..., description="测试点内存占用")
+    
+    model_config = ConfigDict(from_attributes=True)
 
 class TestCaseResultDetail(TestCaseResult):
     case:Case = Field(..., description="测试用例")
     output:str = Field(..., description="预期输出")
     err_msg:str = Field(..., description="错误信息")
+
+    model_config = ConfigDict(from_attributes=True)
 
 class SubmissionBase(BaseModel):
     submission_id:int = Field(..., validation_alias="id", description="评测id")
@@ -66,20 +70,18 @@ class SubmissionListResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class SubmissionLogResponse(BaseModel):
-    test_case_results:List[TestCaseResult] = Field(..., validation_alias='test_case_results', serialization_alias='status', description="各测试点评测状态")
+    test_case_results:List[TestCaseResult] = Field(..., validation_alias='test_case_results', serialization_alias='details', description="各测试点评测状态")
     score:Optional[int] = Field(..., description="测试点分数")
     counts:Optional[int] = Field(..., description="总分数")
 
     model_config = ConfigDict(from_attributes=True)
-    model_config['from_attributes']=True
 
 class SubmissionLogDetailResponse(BaseModel):
-    test_cases:List[TestCaseResultDetail] = Field(..., validation_alias='test_case_results', serialization_alias='status', description="各测试点详细评测状态")
+    test_cases:List[TestCaseResultDetail] = Field(..., validation_alias='test_case_results', serialization_alias='details', description="各测试点详细评测状态")
     score:Optional[int] = Field(..., description="测试点分数")
     counts:Optional[int] = Field(..., description="总分数")
 
     model_config = ConfigDict(from_attributes=True)
-    model_config['from_attributes']=True
 
 """Payload"""
 class SubmissionAddPayload(BaseModel):

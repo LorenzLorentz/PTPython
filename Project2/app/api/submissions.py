@@ -89,7 +89,7 @@ async def rejudge(request:Request, submission_id:int, db_session=Depends(get_db)
 async def get_submission_log(request:Request, submission_id:int, db_session=Depends(get_db)):
     """查询评测日志"""
     db_submission = db.db_submission.get_submission(db=db_session, submission_id=submission_id)
-
+    
     if db_submission is None:
         raise APIException(status_code=404, msg="评测不存在")
 
@@ -98,7 +98,7 @@ async def get_submission_log(request:Request, submission_id:int, db_session=Depe
         db_user = db.db_user.get_user(db=db_session, user_id=user_id)
         if db_user is None:
             raise APIException(status_code=401, msg="用户未登录")
-        if db_user.user_id != "admin":
+        if db_user.role != "admin":
             raise APIException(status_code=403, msg="权限不足")
     
     data = None

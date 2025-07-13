@@ -107,7 +107,7 @@ def eval(self, submission_id:int):
 
         run_tasks_group = group(
             run_task.s(
-                test_case_result_id=i,
+                test_case_result_id=i+1,
                 case_id=case.id,
                 work_dir=work_dir,
                 run_cmd=db_language.run_cmd,
@@ -285,7 +285,7 @@ def error(submission_id:int, result:str, work_dir:str, err_msg:str=""):
         db_submission.test_case_results = [
             TestCaseResultModel(
                 submission_id=submission_id,
-                id=i,
+                test_case_result_id=i+1,
                 result=result,
                 time=0.0,
                 memory=0,
