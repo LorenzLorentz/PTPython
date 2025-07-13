@@ -90,7 +90,7 @@ def test_get_submission_result(client):
     submission_id = submit_response.json()["data"]["submission_id"]
 
     # Wait for judging
-    time.sleep(1)
+    time.sleep(5)
 
     # Get submission result
     response = client.get(f"/api/submissions/{submission_id}")

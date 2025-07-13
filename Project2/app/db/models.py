@@ -110,6 +110,7 @@ class TestCaseResultModel(Base):
     __tablename__ = "test_case_results"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    test_case_result_id = Column(Integer, nullable=False)
     result = Column(Enum(StatusCategory), default=StatusCategory.PENDING, nullable=False)
     time = Column(Float, default=0.0, nullable=False)
     memory = Column(Integer, default=0, nullable=False)

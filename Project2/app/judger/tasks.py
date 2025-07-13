@@ -8,15 +8,13 @@ from requests.exceptions import ReadTimeout
 
 from app.judger.celery_app import celery_app
 from app.db.database import SessionLocal
-from app.db.models import SubmissionModel, StatusCategory, TestCaseResultModel
+from app.db.models import SubmissionModel, StatusCategory, TestCaseResultModel, LanguageModel, ProblemModel
 from app.schemas.language import LanguageBase
 from app.schemas.problem import Case
 
-client = docker.from_env()
-
 DOCKER_IMAGE = {
-    "cpp": "gcc:11.2.0-bullseye", 
-    "python": "python:3.10.14-bookworm"
+    "cpp": "gcc-judge:latest", 
+    "python": "python-judge:latest"
 }
 
 WORKDIR_BASE = os.path.expanduser("~/tmp/")
@@ -35,13 +33,33 @@ STATUS_PRECEDENCE = {
     StatusCategory.UNK: 9,
 }
 
+STATUS_DICT = {
+    "AC": StatusCategory.AC,
+    "WA": StatusCategory.WA,
+    "RE": StatusCategory.RE,
+    "TLE": StatusCategory.TLE,
+    "MLE": StatusCategory.MLE,
+    "CE": StatusCategory.CE,
+    "JUDGING": StatusCategory.JUDGING,
+    "COMPILING": StatusCategory.COMPILING,
+    "PENDING": StatusCategory.PENDING,
+    "UNK": StatusCategory.UNK,
+}
+
 @celery_app.task(name="tasks.eval", bind=True)
 def eval(self, submission_id:int):
-    with open("error.log", "a") as f:
-        print("THERE 0", file=f)
-
+    client = docker.from_env()
     db = SessionLocal()
     db_submission = db.query(SubmissionModel).filter(SubmissionModel.id == submission_id).first()
+    db_language = db.query(LanguageModel).filter(LanguageModel.id == db_submission.language_id).first()
+    db_problem = db.query(ProblemModel).filter(ProblemModel.id == db_submission._problem_id).first()
+
+    time_limit = db_problem.time_limit
+    memory_limit = db_problem.memory_limit
+    if time_limit is None:
+        time_limit = db_language.time_limit
+    if memory_limit is None:
+        memory_limit = db_language.memory_limit
 
     if not db_submission:
         return
@@ -53,26 +71,25 @@ def eval(self, submission_id:int):
     os.makedirs(work_dir, exist_ok=True)
 
     try:
-        code_path = os.path.join(work_dir, "main" + db_submission.language.file_ext)
+        code_path = os.path.join(work_dir, "main" + db_language.file_ext or "")
         with open(code_path, "w") as f:
             f.write(db_submission.code)
         
-        if db_submission.language.compile_cmd:
-            compile_command = db_submission.language.compile_cmd
-            
+        if db_language.compile_cmd:
+            compile_command = db_language.compile_cmd
             try:
                 client.containers.run(
-                    image=DOCKER_IMAGE.get(db_submission.language.name),
+                    image=DOCKER_IMAGE.get(db_language.name),
                     command=compile_command,
                     volumes={work_dir: {'bind': '/app', 'mode': 'rw'}},
                     working_dir='/app',
                     network_disabled=True,
                     user='nobody',
                     auto_remove=True,
-                    mem_limit=f"{db_submission.problem.memory_limit * 2}m"
+                    mem_limit=f"{memory_limit*2}m"
                 )
 
-                if not os.path.exists(os.path.join(work_dir, db_submission.language.exe_name)):
+                if not os.path.exists(os.path.join(work_dir, "main" + db_language.file_ext or "")):
                     error(submission_id, StatusCategory.CE, work_dir, err_msg="Compiler did not produce an executable.")
                     return
 
@@ -80,48 +97,46 @@ def eval(self, submission_id:int):
                 error_message = e.stderr.decode('utf-8', errors='ignore') if e.stderr else str(e)
                 error(submission_id, StatusCategory.CE, work_dir, err_msg=error_message)
                 return
-
+        
         db_submission.status = StatusCategory.JUDGING
         db.commit()
-        
+
         run_tasks_group = group(
             run_task.s(
-                id=i,
+                test_case_result_id=i,
                 case_id=case.id,
                 work_dir=work_dir,
-                language_dict=db_submission.language.__dict__,
-                testcase_dict=case.__dict__,
-                time_limit=db_submission.problem.time_limit,
-                memory_limit=db_submission.problem.memory_limit
-            ) for i, case in enumerate(db_submission.problem.testcases)
+                run_cmd=db_language.run_cmd,
+                language_name=db_language.name,
+                test_case_input=case.input,
+                test_case_output=case.output,
+                time_limit=time_limit,
+                memory_limit=memory_limit
+            ) for i, case in enumerate(db_problem.testcases)
         )
 
         workflow = chain(run_tasks_group, collect_results_task.s(submission_id, work_dir))
         workflow.apply_async()
-
     except Exception as e:
-        with open("error.log", "a") as f:
-            print("THERE 1", file=f)
         error(submission_id, StatusCategory.UNK, work_dir, err_msg=str(e))
     finally:
         db.close()
 
 @celery_app.task(name="tasks.run_task")
-def run_task(id:int, case_id:int, work_dir:str, language_dict:dict, testcase_dict:dict, time_limit:float, memory_limit:int) -> Dict[str, Any]:
-    language = LanguageBase(**language_dict)
-    testcase = Case(**testcase_dict)
-    
-    input_path = os.path.join(work_dir, f"{id}.in")
+def run_task(test_case_result_id:int, case_id:int, work_dir:str, run_cmd:str, language_name:str, test_case_input:str, test_case_output:str, time_limit:float, memory_limit:int) -> Dict[str, Any]:
+    client = docker.from_env()
+    input_path = os.path.join(work_dir, f"{test_case_result_id}.in")
     with open(input_path, "w") as f:
-        f.write(testcase.input)
+        f.write(test_case_input)
 
-    run_command = f"sh -c '{language.run_cmd} < {id}.in'"
+    run_command = f"sh -c \"/usr/bin/time -f 'TIME:%U %S' {run_cmd} < {test_case_result_id}.in\""
 
     container = None
     try:
         start_time = time.monotonic()
+
         container = client.containers.run(
-            image=DOCKER_IMAGE.get(language.name, "ubuntu:latest"),
+            image=DOCKER_IMAGE.get(language_name, "ubuntu:latest"),
             command=run_command,
             volumes={work_dir: {'bind': '/app', 'mode': 'ro'}},
             working_dir='/app',
@@ -133,51 +148,74 @@ def run_task(id:int, case_id:int, work_dir:str, language_dict:dict, testcase_dic
         )
 
         result_info = container.wait(timeout=time_limit * 1.2)
-        time_used = time.monotonic() - start_time
 
         status_code = result_info.get('StatusCode', -1)
         stdout = container.logs(stdout=True, stderr=False).decode('utf-8', errors='ignore')
         stderr = container.logs(stdout=False, stderr=True).decode('utf-8', errors='ignore')
         memory_used = container.stats(stream=False).get("memory_stats", {}).get("max_usage", 0) / (1024*1024)
 
-        result_status = StatusCategory.AC
+        time_parts = []
+        user_stderr = []
+        for line in stderr.splitlines():
+            if line.startswith("TIME:"):
+                parts = line.split(":")[-1].strip().split()
+                time_parts.extend(parts)
+            else:
+                user_stderr.append(line)
+
+        if time_parts:
+            time_used = sum(float(t) for t in time_parts)
+            err_msg = "\n".join(user_stderr)
+        else:
+            time_used = time.monotonic() - start_time
+            err_msg = stderr
+
+        result_status = "AC"
         if time_used > time_limit:
-            result_status = StatusCategory.TLE
+            result_status = "TLE"
         elif memory_used > memory_limit or status_code == 137:
-            result_status = StatusCategory.MLE
+            result_status = "MLE"
         elif status_code != 0:
-            result_status = StatusCategory.RE
-        elif stdout.rstrip() != testcase.output.rstrip():
-            result_status = StatusCategory.WA
+            result_status = "RE"
+        elif stdout.rstrip() != test_case_output.rstrip():
+            result_status = "WA"
+
+        with open("error.log", "a") as f:
+            print({
+                "test_case_result_id": test_case_result_id,
+                "result": result_status,
+                "time": time_used,
+                "memory": memory_used,
+                "output": stdout,
+                "err_msg": err_msg,
+                "case_id": case_id,
+            }, file=f)
 
         return {
-            "id": id,
+            "test_case_result_id": test_case_result_id,
             "result": result_status,
             "time": time_used,
             "memory": memory_used,
-            "case": testcase_dict,
             "output": stdout,
             "err_msg": stderr,
             "case_id": case_id,
         }
     except ReadTimeout:
         return {
-            "id": id,
-            "result": StatusCategory.TLE,
+            "test_case_result_id": test_case_result_id,
+            "result": "TLE",
             "time": time_limit,
             "memory": 0,
-            "case": testcase_dict,
             "output": "",
-            "err_msg": "",
+            "err_msg": "Wait Time Out",
             "case_id": case_id,
         }
     except Exception as e:
         return {
-            "id": id,
-            "result": StatusCategory.TLE,
+            "test_case_result_id": test_case_result_id,
+            "result": "TLE",
             "time": time_limit,
             "memory": 0,
-            "case": testcase_dict,
             "output": "",
             "err_msg": str(e),
             "case_id": case_id,
@@ -196,15 +234,18 @@ def collect_results_task(test_case_results:List[Dict[str, Any]], submission_id:i
     max_memory = 0
     counts = 0
 
+    if not isinstance(test_case_results, list):
+        test_case_results = [test_case_results]
+    
     for test_case_result in test_case_results:
         max_time = max(max_time, test_case_result.get("time", 0))
         max_memory = max(max_memory, test_case_result.get("memory", 0))
-        result = test_case_result["result"]
+        result = STATUS_DICT.get(test_case_result["result"], StatusCategory.UNK)
 
         if result == StatusCategory.AC:
             counts += 1
         
-        if STATUS_PRECEDENCE.get(result, -1) > STATUS_PRECEDENCE.get(final_status, -1):
+        if STATUS_PRECEDENCE.get(result, -1) > STATUS_PRECEDENCE.get(result, -1):
             final_status = result
 
     db = SessionLocal()
@@ -215,6 +256,9 @@ def collect_results_task(test_case_results:List[Dict[str, Any]], submission_id:i
     db_submission.time = max_time
     db_submission.memory = max_memory
     db_submission.counts = counts*db_submission.score
+
+    with open("error.log", "a") as f:
+        print(max_time, max_memory, result, counts, db_submission.counts, file=f)
     
     db_submission.test_case_results = [
         TestCaseResultModel(submission_id=submission_id, **test_case_result) for test_case_result in test_case_results

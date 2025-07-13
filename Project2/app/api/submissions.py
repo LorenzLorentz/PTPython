@@ -26,10 +26,7 @@ async def submit(request:Request, payload:SubmissionAddPayload, db_session=Depen
     db_problem = db.db_problem.get_problem(db=db_session, problem_id=problem_id)
     if db_problem is None:
         raise APIException(status_code=404, msg="题目不存在")
-    
-    # 提交频率超限
 
-    # 向数据库中提交评测, 什么时候创建评测, 评测结束后如何更新数据库
     db_submission = db.db_submission.add_submission(db=db_session, submission=payload, _problem_id=db_problem.id, user_id=request.session.get("user_id"))
     return {"msg": "success", "data": db_submission}
 

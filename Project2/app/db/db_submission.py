@@ -12,16 +12,14 @@ def add_submission(db:Session, submission:SubmissionAddPayload, _problem_id:int,
     if language:
         db_submission = SubmissionModel(user_id=user_id, _problem_id=_problem_id, language_id=language.id, **submission_data)
     else:
-        with open("error.log", "a") as f:
-            print(language_name, file=f)
         return None
     
     db.add(db_submission)
     db.commit()
     db.refresh(db_submission)
     
-    # from app.judger.tasks import eval
-    # eval.delay(db_submission.id)
+    from app.judger.tasks import eval
+    eval.delay(db_submission.id)
 
     return db_submission
 

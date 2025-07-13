@@ -13,3 +13,4 @@ _git.log
 *.db
 .pytest_cache/
 create_db.py
+.git_log
