@@ -21,13 +21,13 @@ class ProblemBase(BaseModel):
     judge_mode:str = Field("standard", description="评测策略")
 
     # 可选字段
-    hint:Optional[str] = Field(None, description="额外提示")
-    source:Optional[str] = Field(None, description="题目来源")
-    tags:Optional[List[str]] = Field(None, description="题目标签")
+    hint:str = Field("", description="额外提示")
+    source:str = Field("", description="题目来源")
+    tags:List[str] = Field([], description="题目标签")
     time_limit:float = Field(1.0, description="时间限制(单位:秒)")
     memory_limit:int = Field(256, description="内存限制(单位:MB)")
-    author:Optional[str] = Field(None, description="题目作者")
-    difficulty:Optional[str] = Field(None, description="难度等级")
+    author:str = Field("", description="题目作者")
+    difficulty:str = Field("", description="难度等级")
     log_visibility:bool = Field(False, description="日志/测例可见性")
     spj:Optional[dict] = Field(None, description="SPJ脚本")
 
@@ -36,6 +36,8 @@ class ProblemBase(BaseModel):
 """Response"""
 class ProblemInfoResponse(ProblemBase):
     problem_id:str = Field(..., serialization_alias="id", description="题目唯一标识")
+
+    model_config = ConfigDict(from_attributes=True)
 
 class ProblemIDResponse(BaseModel):
     problem_id:str = Field(..., serialization_alias="id", description="题目唯一标识")

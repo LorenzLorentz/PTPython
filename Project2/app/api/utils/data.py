@@ -1,26 +1,23 @@
 from sqlalchemy.orm import Session
 
-from app.db.database import Base, engine, SessionLocal
 from app.db.models import UserModel, LanguageModel
 from app.api.utils.security import get_password_hash
 
 def seed_ini_data(db:Session):
-    cpp = db.query(LanguageModel).filter(LanguageModel.name == "cpp").first()
-    python = db.query(LanguageModel).filter(LanguageModel.name == "python").first()
     admin = db.query(UserModel).filter(UserModel.username == "admin").first()
-    
-    if not admin:
+    if admin:
+        admin.username = "admin"
+        admin.hashed_password = get_password_hash("admintestpassword")
+        admin.role = "admin"
+    else:
         admin = UserModel(
             username = "admin",
-            hashed_password = get_password_hash("admin"),
+            hashed_password = get_password_hash("admintestpassword"),
             role = "admin",
         )
         db.add(admin)
-    else:
-        admin.username = "admin"
-        admin.hashed_password = get_password_hash("admin")
-        admin.role = "admin"
-
+    
+    cpp = db.query(LanguageModel).filter(LanguageModel.name == "cpp").first()
     if not cpp:
         cpp = LanguageModel(
             name = "cpp",
@@ -31,7 +28,8 @@ def seed_ini_data(db:Session):
             memory_limit = 256,
         )
         db.add(cpp)
-
+    
+    python = db.query(LanguageModel).filter(LanguageModel.name == "python").first()
     if not python:
         python = LanguageModel(
             name = "python",
@@ -41,3 +39,5 @@ def seed_ini_data(db:Session):
             memory_limit = 256,
         )
         db.add(python)
+    
+    db.commit()

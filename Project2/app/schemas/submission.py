@@ -37,12 +37,6 @@ class SubmissionBase(BaseModel):
     test_case_results:List[TestCaseResultDetail] = Field(..., description="各测试点评测状态")
 
 """Response"""
-class SubmissionErrorResponse(BaseModel):
-    submission_id:int = Field(..., validation_alias="id", description="评测id")
-    status:str = Field(..., description="评测状态")
-
-    model_config = ConfigDict(from_attributes=True)
-
 class SubmissionStatusResponse(BaseModel):
     submission_id:int = Field(..., validation_alias="id", description="评测id")
     status:str = Field(..., description="评测状态")
@@ -70,16 +64,15 @@ class SubmissionListResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class SubmissionLogResponse(BaseModel):
-    test_case_results:List[TestCaseResult] = Field(..., validation_alias='test_case_results', serialization_alias='details', description="各测试点评测状态")
-    score:Optional[int] = Field(..., description="测试点分数")
-    counts:Optional[int] = Field(..., description="总分数")
+    score:int = Field(0, description="测试点分数")
+    counts:int = Field(0, description="总分数")
 
     model_config = ConfigDict(from_attributes=True)
 
 class SubmissionLogDetailResponse(BaseModel):
-    test_cases:List[TestCaseResultDetail] = Field(..., validation_alias='test_case_results', serialization_alias='details', description="各测试点详细评测状态")
-    score:Optional[int] = Field(..., description="测试点分数")
-    counts:Optional[int] = Field(..., description="总分数")
+    details:List[TestCaseResult] = Field(..., validation_alias='test_case_results', description="各测试点详细评测状态")
+    score:int = Field(0, description="测试点分数")
+    counts:int = Field(0, description="总分数")
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -94,5 +87,5 @@ class SubmissionQueryParams(BaseModel):
     user_id:Optional[int] = Field(None, description="用户id")
     problem_id:Optional[str] = Field(None, description="题目id")
     status:Optional[str] = Field(None, description="评测状态")
-    page:int = Field(0, description="页码", ge=0)
-    page_size:int = Field(10, description="每页大小", gt=0)
+    page:Optional[int] = Field(None, description="页码", ge=1)
+    page_size:Optional[int] = Field(None, description="每页大小", gt=0)

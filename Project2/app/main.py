@@ -4,6 +4,12 @@ from fastapi.exceptions import RequestValidationError
 from app.api.api import api_router
 from starlette.middleware.sessions import SessionMiddleware
 from app.api.utils.exception import APIException
+from app.db.database import SessionLocal, Base, engine
+from app.api.utils.data import seed_ini_data
+
+Base.metadata.create_all(bind=engine)
+with SessionLocal() as db:
+    seed_ini_data(db)
 
 app = FastAPI(title="OJ System")
 
@@ -12,15 +18,15 @@ app.include_router(api_router, prefix="/api")
 
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to app System API"}
+    return {"message": "Welcome to OJ"}
 
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
+async def validation_exception_handler(request:Request, exc:RequestValidationError):
     return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
         content={
             "code": 400,
-            "msg": "字段缺失或格式错误",
+            "msg": "参数错误",
             "detail": exc.errors() 
         },
     )

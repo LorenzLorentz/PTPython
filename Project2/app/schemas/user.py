@@ -22,12 +22,7 @@ class UserRoleResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-class UserIDResponse(BaseModel):
-    user_id:int = Field(..., validation_alias="id", description="用户id")
-    
-    model_config = ConfigDict(from_attributes=True)
-
-class UserAdminResponse(BaseModel):
+class UserNameResponse(BaseModel):
     user_id:int = Field(..., validation_alias="id", description="用户id")
     username:str = Field(..., description="用户名")
     
@@ -65,11 +60,6 @@ class UserRolePayload(BaseModel):
     role:str = Field(..., description="新权限")
 
 """Params"""
-class UserQueryParams:
-    def __init__(
-        self,
-        page:int = Query(1, description="页码", ge=1),
-        page_size:int = Query(10, description="每页大小", gt=0)
-    ):
-        self.page = page
-        self.page_size = page_size
+class UserQueryParams(BaseModel):
+    page:int = Field(1, description="页码", ge=1)
+    page_size:int = Field(10, description="每页大小", gt=0)
