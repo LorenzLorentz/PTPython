@@ -22,8 +22,8 @@ def seed_ini_data(db:Session):
         cpp = LanguageModel(
             name = "cpp",
             file_ext = ".cpp",
-            compile_cmd = "g++ -std=c++14 main.cpp -o main.o",
-            run_cmd = "./main.o",
+            compile_cmd = "g++ -std=c++14 main.cpp -o main",
+            run_cmd = "./main",
             time_limit = 1.0,
             memory_limit = 256,
         )

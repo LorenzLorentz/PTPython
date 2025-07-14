@@ -51,7 +51,7 @@ def _run_single(
     test_case_input:str, test_case_output:str, time_limit:float, memory_limit:int,
     judge_mode:str, spj:str
 ) -> Dict[str, Any]:
-    """运行测例"""
+    """运行测例"""    
     input_filename = f"{test_case_result_id}.in"
     input_path = os.path.join(work_dir, input_filename)
     with open(input_path, "w") as f:
@@ -160,11 +160,13 @@ def _prepare(submission_id: int):
         code_path = os.path.join(work_dir, "main" + (db_language.file_ext or ""))
         with open(code_path, "w") as f:
             f.write(db_submission.code)
+        
+        print(123, db_language.file_ext)
 
         if db_language.compile_cmd:
-            db_submission.status = SubmissionStatusCategory.COMPILING
-            db.commit()
+            print(234)
             try:
+                print(345)
                 client = docker.from_env(timeout=10)
                 client.containers.run(
                     image=DOCKER_IMAGE.get(db_language.name),
@@ -172,14 +174,16 @@ def _prepare(submission_id: int):
                     volumes={work_dir: {'bind': '/app', 'mode': 'rw'}},
                     working_dir='/app',
                     network_disabled=True,
-                    user='nobody',
+                    user='root',
+                    mem_limit=f"{memory_limit * 2}m",
                     auto_remove=True,
-                    mem_limit=f"{memory_limit * 2}m"
                 )
+
                 if not os.path.exists(os.path.join(work_dir, "main")):
                     _error(submission_id, StatusCategory.CE, work_dir, "Compiler did not produce an executable.")
                     return
             except docker.errors.ContainerError as e:
+                print(e)
                 error_message = e.stderr.decode('utf-8', errors='ignore') if e.stderr else str(e)
                 _error(submission_id, StatusCategory.CE, work_dir, err_msg=error_message)
                 return
@@ -255,8 +259,8 @@ def _prepare(submission_id: int):
         _error(submission_id, StatusCategory.UNK, work_dir, err_msg=f"Main orchestrator failed: {str(e)}")
     finally:
         db.close()
-        # if os.path.exists(work_dir):
-        #     shutil.rmtree(work_dir)
+        if os.path.exists(work_dir):
+            shutil.rmtree(work_dir)
 
 def _error(submission_id:int, result:StatusCategory, work_dir:str, err_msg:str=""):
     """更新错误状态"""
@@ -280,12 +284,9 @@ def _error(submission_id:int, result:StatusCategory, work_dir:str, err_msg:str="
             db.commit()
     finally:
         db.close()
-        # if os.path.exists(work_dir):
-        #     shutil.rmtree(work_dir)
+        if os.path.exists(work_dir):
+            shutil.rmtree(work_dir)
 
 def eval(submission_id: int):
     process = multiprocessing.Process(target=_prepare, args=(submission_id,))
     process.start()
-
-if __name__ == "__main__":
-    _prepare(1)
