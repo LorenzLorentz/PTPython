@@ -8,7 +8,7 @@ from app.schemas.problem import Case
 """Base"""
 class TestCaseResult(BaseModel):
     id:int = Field(..., validation_alias="test_case_result_id", description="测试点id")
-    result:str = Field(..., description="测试点结果")
+    result:str = Field(..., description="测试点结果") # AC,...,UNK
     time:float = Field(..., description="测试点用时")
     memory:int = Field(..., description="测试点内存占用")
     
@@ -39,18 +39,11 @@ class SubmissionBase(BaseModel):
 """Response"""
 class SubmissionStatusResponse(BaseModel):
     submission_id:int = Field(..., validation_alias="id", description="评测id")
-    status:str = Field(..., description="评测状态")
+    status:str = Field(..., description="评测状态") # pending, success, error
 
     model_config = ConfigDict(from_attributes=True)
 
 class SubmissionResultResponse(BaseModel):
-    score:int = Field(..., description="得分")
-    counts:int = Field(..., description="总分数")
-
-    model_config = ConfigDict(from_attributes=True)
-
-class SubmissionInfoResponse(BaseModel):
-    submission_id:int = Field(..., validation_alias="id", description="评测id")
     status:str = Field(..., description="评测状态")
     score:int = Field(..., description="得分")
     counts:int = Field(..., description="总分数")
@@ -59,7 +52,7 @@ class SubmissionInfoResponse(BaseModel):
 
 class SubmissionListResponse(BaseModel):
     total:int = Field(..., description="总数")
-    submissions:List[SubmissionInfoResponse] = Field(..., description="评测列表")
+    submissions:List[SubmissionResultResponse] = Field(..., description="评测列表")
 
     model_config = ConfigDict(from_attributes=True)
 

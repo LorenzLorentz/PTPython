@@ -94,11 +94,18 @@ def submit_code(session:requests.Session, problem_id:str, language_name:str, cod
         st.error(f"提交代码时出错: {e}")
         return None
 
-def get_submission_result(session:requests.Session, token:str, submission_id:int):
+def get_submission_result(session:requests.Session, submission_id:int):
     try:
         response = session.get(
-            f"{BASE_URL}/submissions/{submission_id}",
+            f"{BASE_URL}/api/submissions/{submission_id}",
         )
+        
+        print("------ DEBUG RESULT RESPONSE ------")
+        print(f"Status Code: {response.status_code}")
+        print(f"Headers: {response.headers}")
+        print(f"Response Text: {response.text}")
+        print("----------------------------------")
+
         if response.status_code == 200:
             return response.json().get("data")
         else:

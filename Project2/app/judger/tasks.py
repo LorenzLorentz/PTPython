@@ -9,7 +9,7 @@ from requests.exceptions import ReadTimeout
 
 from app.judger.celery_app import celery_app
 from app.db.database import SessionLocal
-from app.db.models import SubmissionModel, StatusCategory, TestCaseResultModel, LanguageModel, ProblemModel
+from app.db.models import SubmissionModel, StatusCategory, SubmissionStatusCategory, TestCaseResultModel, LanguageModel, ProblemModel
 
 @worker_process_init.connect(weak=False)
 def init_docker_client(**kwargs):
@@ -53,10 +53,10 @@ STATUS_DICT = {
 def eval(self, submission_id:int):
     client = current_app.docker_client
     db = SessionLocal()
-    db_submission = db.query(SubmissionModel).filter(SubmissionModel.id == submission_id).first()
-    db_language = db.query(LanguageModel).filter(LanguageModel.id == db_submission.language_id).first()
-    db_problem = db.query(ProblemModel).filter(ProblemModel.id == db_submission._problem_id).first()
-
+    db_submission = db.get(SubmissionModel, submission_id)
+    db_language = db.get(LanguageModel, db_submission.language_id)
+    db_problem = db.get(ProblemModel, db_submission._problem_id)
+    
     time_limit = db_problem.time_limit
     memory_limit = db_problem.memory_limit
     if time_limit is None:
@@ -68,7 +68,7 @@ def eval(self, submission_id:int):
         return
 
     db_submission.counts = 10*len(db_problem.testcases)
-    db_submission.status = StatusCategory.COMPILING
+    db_submission.status = SubmissionStatusCategory.PENDING
     db.commit()
 
     work_dir = os.path.join(WORKDIR_BASE, str(submission_id))
@@ -102,7 +102,7 @@ def eval(self, submission_id:int):
                 error(submission_id, StatusCategory.CE, work_dir, err_msg=error_message)
                 return
         
-        db_submission.status = StatusCategory.JUDGING
+        db_submission.status = SubmissionStatusCategory.PENDING
         db.commit()
 
         run_tasks_group = group(
@@ -266,9 +266,13 @@ def collect_results_task(test_case_results:List[Dict[str, Any]], submission_id:i
         if STATUS_PRECEDENCE.get(result, -1) > STATUS_PRECEDENCE.get(result, -1):
             final_status = result
 
+    if STATUS_PRECEDENCE.get(final_status) == 0:
+        final_status = SubmissionStatusCategory.SUCCESS
+    else:
+        final_status = SubmissionStatusCategory.ERROR
+
     db = SessionLocal()
-    # db_submission = db.query(SubmissionModel).get(submission_id)
-    db_submission = db.query(SubmissionModel).filter(SubmissionModel.id == submission_id).first()
+    db_submission = db.get(SubmissionModel, submission_id)
 
     db_submission.status = final_status
     db_submission.time = max_time
@@ -290,11 +294,10 @@ def collect_results_task(test_case_results:List[Dict[str, Any]], submission_id:i
 
 def error(submission_id:int, result:str, work_dir:str, err_msg:str=""):
     db = SessionLocal()
-    # db_submission = db.query(SubmissionModel).get(submission_id)
-    db_submission = db.query(SubmissionModel).filter(SubmissionModel.id == submission_id).first()
+    db_submission = db.get(SubmissionModel, submission_id)
 
     if db_submission:
-        db_submission.status = result
+        db_submission.status = SubmissionStatusCategory.ERROR
         
         db_submission.test_case_results = [
             TestCaseResultModel(

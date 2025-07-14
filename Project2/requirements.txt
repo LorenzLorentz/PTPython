@@ -9,6 +9,7 @@ fastapi[all]
 celery[redis]
 bcrypt
 streamlit
+streamlit-autorefresh
 # Core dependencies
 fastapi>=0.104.0
 uvicorn[standard]>=0.24.0

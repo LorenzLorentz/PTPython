@@ -18,6 +18,11 @@ class StatusCategory(enum.Enum):
     COMPILING = "compiling"
     UNK = "UNK"
 
+class SubmissionStatusCategory(enum.Enum):
+    PENDING = "pending"
+    SUCCESS = "success"
+    ERROR = "error"
+
 """Models"""
 class UserModel(Base):
     __tablename__ = "users"
@@ -129,7 +134,7 @@ class SubmissionModel(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     code = Column(Text, nullable=False)
-    status = Column(Enum(StatusCategory), default=StatusCategory.PENDING, index=True, nullable=False)
+    status = Column(Enum(SubmissionStatusCategory), default=SubmissionStatusCategory.PENDING, index=True, nullable=False)
     score = Column(Integer, default=0, nullable=False)
     counts = Column(Integer, default=0, nullable=False)
     time = Column(Float, default=0.0, nullable=False)
