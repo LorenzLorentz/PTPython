@@ -7,7 +7,9 @@ from typing import Dict, Any
 from requests.exceptions import ReadTimeout
 
 from app.db.database import SessionLocal
-from app.db.models import SubmissionModel, StatusCategory, SubmissionStatusCategory, TestCaseResultModel, LanguageModel, ProblemModel
+from app.db.models import (
+    SubmissionModel, StatusCategory, SubmissionStatusCategory, TestCaseResultModel, LanguageModel, ProblemModel, UserModel
+)
 
 """参数设置"""
 client = docker.from_env(timeout=10)
@@ -245,15 +247,14 @@ def _prepare(submission_id: int):
         print([res for res in test_case_results])
         print(max_time, max_memory, final_status_category, total_score, db_submission.counts)
         
+        if db_submission.status == SubmissionStatusCategory.SUCCESS:
+            db_user = db.get(UserModel, db_submission.user_id)
+            db_user.resolve_count += 1
+
         db_submission.test_case_results = [
             TestCaseResultModel(submission_id=submission_id, **result) for result in test_case_results
         ]
         db.commit()
-
-        _db_submission = db.query(SubmissionModel).filter(SubmissionModel.id==submission_id).first()
-        with open("error.log", "a") as f:
-            print("!!!", max_time, max_memory, final_status_category, total_score, db_submission.counts, file=f)
-            print("123", _db_submission.score, _db_submission.counts, file=f)
 
     except Exception as e:
         _error(submission_id, StatusCategory.UNK, work_dir, err_msg=f"Main orchestrator failed: {str(e)}")

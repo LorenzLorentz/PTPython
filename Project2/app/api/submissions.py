@@ -29,6 +29,7 @@ async def submit(payload:SubmissionAddPayload, db_login:UserModel=Depends(requir
         raise APIException(status_code=404, msg="语言不存在")
 
     db_submission = db.db_submission.add_submission(db=db_session, submission=payload, _problem_id=db_problem.id,language_id=db_language.id, user_id=db_login.id)
+    db_login.submit_count += 1
     return {"msg": "success", "data": db_submission}
 
 @router.get("/{submission_id}", response_model=ResponseModel[SubmissionResultResponse])
