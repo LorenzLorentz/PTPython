@@ -15,7 +15,7 @@ class LogBase(BaseModel):
 
 """Response"""
 class LogResponse(LogBase):
-    problem_id:str = Field("", description="题目id")
+    problem_id:Optional[str] = Field("", description="题目id")
 
 """Params"""
 class LogQueryParams(BaseModel):
