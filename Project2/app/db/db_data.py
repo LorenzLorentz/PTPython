@@ -3,19 +3,13 @@ from sqlalchemy.orm import Session
 from app.db.models import UserModel, ProblemModel, SubmissionModel, SampleModel, CaseModel, LanguageModel, TestCaseResultModel
 from app.schemas.data import DataImport
 from app.api.utils.data import seed_ini_data
+from app.db.database import SessionLocal, Base, engine
 
-def reset(db:Session):
-    try:
-        db.query(SubmissionModel).delete(synchronize_session=False)
-        db.query(ProblemModel).delete(synchronize_session=False)
-        db.query(UserModel).delete(synchronize_session=False)
-
+def reset():
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+    with SessionLocal() as db:
         seed_ini_data(db)
-
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        raise e
 
 def get_data(db:Session):
     users = db.query(UserModel).all()

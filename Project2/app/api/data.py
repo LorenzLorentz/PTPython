@@ -14,12 +14,12 @@ from app.schemas.data import DataImport, DataExport
 
 reset_router = APIRouter()
 @reset_router.post("/", response_model=ResponseModel[None])
-async def reset(request:Request, db_admin:UserModel=Depends(require_admin), db_session:Session=Depends(get_db)):
+async def reset(request:Request, db_admin:UserModel=Depends(require_admin)):
     """系统重置"""
     request.session.pop("user_id")
 
     try:
-        db.db_data.reset(db=db_session)
+        db.db_data.reset()
         return {"msg":"system reset successfully", "data":None}
     except Exception as e:
         raise APIException(status_code=500, msg="服务器异常")
