@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, UploadFile, File
 from typing import List
 
 from app import db
@@ -67,3 +67,38 @@ async def set_log_visibility(request:Request, problem_id:str, payload:ProblemSet
         raise APIException(status_code=404, msg="题目不存在")
     
     return {"msg": "log visibility updated", "data": db_problem}
+
+@router.post("/{problem_id}/spj", response_model=ResponseModel[ProblemIDResponse])
+async def upload_spj(request:Request, problem_id:str, file:UploadFile=File(...), db_session=Depends(get_db)):
+    """上传 SPJ 脚本"""
+    if not check_login(request=request, db_session=db_session):
+        raise APIException(status_code=401, msg="用户未登录")
+
+    if not check_admin(request=request, db_session=db_session):
+        raise APIException(status_code=403, msg="用户无权限")
+
+    spj = {
+        "file_ext": file.filename,
+        "content": await file.read(),
+    }
+
+    db_problem = db.db_problem.add_spj(db=db_session, problem_id=problem_id, spj=spj)
+    if db_problem is None:
+        raise APIException(status_code=404, msg="题目不存在")
+    
+    return {"msg": "add spj success", "data": db_problem}
+
+@router.delete("/{problem_id}/spj", response_model=ResponseModel[ProblemIDResponse])
+async def delete_spj(request:Request, problem_id:str, db_session=Depends(get_db)):
+    """删除 SPJ 脚本"""
+    if not check_login(request=request, db_session=db_session):
+        raise APIException(status_code=401, msg="用户未登录")
+
+    if not check_admin(request=request, db_session=db_session):
+        raise APIException(status_code=403, msg="用户无权限")
+    
+    db_problem = db.db_problem.delete_spj(db=db_session, problem_id=problem_id)
+    if db_problem is None:
+        raise APIException(status_code=404, msg="题目不存在")
+    
+    return {"msg": "delete spj success", "data": db_problem}

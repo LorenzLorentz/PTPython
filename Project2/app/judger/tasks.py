@@ -115,7 +115,9 @@ def eval(self, submission_id:int):
                 test_case_input=case.input,
                 test_case_output=case.output,
                 time_limit=time_limit,
-                memory_limit=memory_limit
+                memory_limit=memory_limit,
+                judge_mode=db_problem.judge_mode,
+                spj=db_problem.spj,
             ) for i, case in enumerate(db_problem.testcases)
         )
 
@@ -127,7 +129,7 @@ def eval(self, submission_id:int):
         db.close()
 
 @celery_app.task(name="tasks.run_task")
-def run_task(test_case_result_id:int, case_id:int, work_dir:str, run_cmd:str, language_name:str, test_case_input:str, test_case_output:str, time_limit:float, memory_limit:int) -> Dict[str, Any]:
+def run_task(test_case_result_id:int, case_id:int, work_dir:str, run_cmd:str, language_name:str, test_case_input:str, test_case_output:str, time_limit:float, memory_limit:int, judge_mode:str, spj:str) -> Dict[str, Any]:
     client = current_app.docker_client
     input_path = os.path.join(work_dir, f"{test_case_result_id}.in")
     with open(input_path, "w") as f:
@@ -175,14 +177,29 @@ def run_task(test_case_result_id:int, case_id:int, work_dir:str, run_cmd:str, la
             err_msg = stderr
 
         result_status = "AC"
+        score = None
         if time_used > time_limit:
             result_status = "TLE"
         elif memory_used > memory_limit or status_code == 137:
             result_status = "MLE"
         elif status_code != 0:
             result_status = "RE"
-        elif stdout.rstrip() != test_case_output.rstrip():
-            result_status = "WA"
+        else:
+            if judge_mode == "standard":
+                if stdout.rstrip() != test_case_output.rstrip():
+                    result_status = "WA"
+            elif judge_mode == "strict":
+                if stdout != test_case_output:
+                    result_status = "WA"
+            elif judge_mode == "spj":
+                spj_result = spj.judge(test_case_output, stdout)
+                if isinstance(spj_result, bool):
+                    if not spj_result:
+                        result_status = "WA"
+                elif isinstance(spj_result, int):
+                    score = spj_result #TBD
+                    if score<10:
+                        result_status = "WA"
 
         return {
             "test_case_result_id": test_case_result_id,
@@ -190,8 +207,9 @@ def run_task(test_case_result_id:int, case_id:int, work_dir:str, run_cmd:str, la
             "time": time_used,
             "memory": memory_used,
             "output": stdout,
-            "err_msg": stderr,
+            "err_msg": err_msg,
             "case_id": case_id,
+            "score": score,
         }
     except ReadTimeout:
         return {
@@ -225,7 +243,7 @@ def collect_results_task(test_case_results:List[Dict[str, Any]], submission_id:i
     final_status = StatusCategory.AC
     max_time = 0.0
     max_memory = 0
-    counts = 0
+    tot_socre = 0
 
     if not isinstance(test_case_results, list):
         test_case_results = [test_case_results]
@@ -237,9 +255,13 @@ def collect_results_task(test_case_results:List[Dict[str, Any]], submission_id:i
         max_time = max(max_time, test_case_result.get("time", 0))
         max_memory = max(max_memory, test_case_result.get("memory", 0))
         result = STATUS_DICT.get(test_case_result["result"], StatusCategory.UNK)
-
-        if result == StatusCategory.AC:
-            counts += 1
+        
+        score = test_case_result.pop("score", None)
+        if score is not None:
+            tot_socre += score
+        else:
+            if result == StatusCategory.AC:
+                tot_socre += 10
         
         if STATUS_PRECEDENCE.get(result, -1) > STATUS_PRECEDENCE.get(result, -1):
             final_status = result
@@ -251,10 +273,10 @@ def collect_results_task(test_case_results:List[Dict[str, Any]], submission_id:i
     db_submission.status = final_status
     db_submission.time = max_time
     db_submission.memory = max_memory
-    db_submission.score = 10*counts
+    db_submission.score = tot_socre
 
     with open("error.log", "a") as f:
-        print(max_time, max_memory, result, counts, db_submission.counts, db_submission.score, file=f)
+        print(max_time, max_memory, result, db_submission.counts, db_submission.score, file=f)
     
     db_submission.test_case_results = [
         TestCaseResultModel(submission_id=submission_id, **test_case_result) for test_case_result in test_case_results

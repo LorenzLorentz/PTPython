@@ -41,3 +41,16 @@ def set_problem_log_visibility(db:Session, problem_id:str, log_visibility:bool):
         db.refresh(db_problem)
         return db_problem
     return None
+
+def add_spj(db:Session, problem_id:str, spj:str):
+    pass
+
+def delete_spj(db:Session, problem_id:str):
+    db_problem = db.query(ProblemModel).filter(ProblemModel.problem_id == problem_id).first()
+    if db_problem:
+        db_problem.judge_mode = "standard"
+        db_problem.spj = None
+        db.commit()
+        db.refresh(db_problem)
+        return db_problem
+    return None

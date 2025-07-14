@@ -8,3 +8,4 @@ starlette==0.47.1
 fastapi[all]
 celery[redis]
 bcrypt
+streamlit

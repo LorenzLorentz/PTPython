@@ -18,6 +18,7 @@ class ProblemBase(BaseModel):
     samples:List[Case] = Field(..., description="样例输入输出")
     constraints:str = Field(..., description="数据范围和限制条件")
     testcases:List[Case] = Field(..., description="测试点")
+    judge_mode:str = Field("standard", description="评测策略")
 
     # 可选字段
     hint:Optional[str] = Field(None, description="额外提示")
@@ -27,21 +28,22 @@ class ProblemBase(BaseModel):
     memory_limit:int = Field(256, description="内存限制(单位:MB)")
     author:Optional[str] = Field(None, description="题目作者")
     difficulty:Optional[str] = Field(None, description="难度等级")
-    log_visibility:Optional[bool] = Field(False, description="日志/测例可见性")
+    log_visibility:bool = Field(False, description="日志/测例可见性")
+    spj:Optional[dict] = Field(None, description="SPJ脚本")
 
     model_config = ConfigDict(from_attributes=True)
 
 """Response"""
 class ProblemInfoResponse(ProblemBase):
-    problem_id:str = Field(..., validation_alias="problem_id", serialization_alias="id", description="题目唯一标识")
+    problem_id:str = Field(..., serialization_alias="id", description="题目唯一标识")
 
 class ProblemIDResponse(BaseModel):
-    problem_id:str = Field(..., validation_alias="problem_id", serialization_alias="id", description="题目唯一标识")
+    problem_id:str = Field(..., serialization_alias="id", description="题目唯一标识")
     
     model_config = ConfigDict(from_attributes=True)
 
 class ProblemBriefResponse(BaseModel):
-    problem_id:str = Field(..., validation_alias="problem_id", serialization_alias="id", description="题目唯一标识")
+    problem_id:str = Field(..., serialization_alias="id", description="题目唯一标识")
     title:str = Field(..., description="题目标题")
 
     model_config = ConfigDict(from_attributes=True)

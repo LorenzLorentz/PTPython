@@ -6,10 +6,6 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from app.db.database import Base
 
 """Enums"""
-class CaseCategory(enum.Enum):
-    SAMPLE = "sample"
-    TESTCASE = "testcase"
-
 class StatusCategory(enum.Enum):
     AC = "AC"
     WA = "WA"
@@ -84,6 +80,9 @@ class ProblemModel(Base):
     author = Column(String(255), nullable=True)
     difficulty = Column(String(50), nullable=True)
     log_visibility = Column(Boolean, default=False, nullable=False)
+
+    judge_mode = Column(String(50), default="standard", nullable=False)
+    spj = Column(JSON, nullable=True)
 
     # Relationships
     submissions = relationship("SubmissionModel", back_populates="problem")
