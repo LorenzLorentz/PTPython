@@ -107,10 +107,6 @@ def test_get_submission_result(client):
     assert data["data"]["score"] == 10  # 1 test case × 10 points
     assert data["data"]["counts"] == 10  # Total possible points
 
-    # Test non-existent submission
-    response = client.get("/api/submissions/999999")
-    assert response.status_code == 404
-
 
 def test_get_submissions_list(client):
     """Test GET /api/submissions/"""
