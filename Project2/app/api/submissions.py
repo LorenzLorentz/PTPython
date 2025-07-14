@@ -83,13 +83,16 @@ async def get_submission_log(submission_id:int, db_login:UserModel=Depends(requi
     """查询评测日志"""
     db_submission = db.db_submission.get_submission(db=db_session, submission_id=submission_id)
     if db_submission is None:
+        db.db_log.add_log(db=db_session, user_id=db_login.id, _problem_id=None, action="view_log", status=404)
         raise APIException(status_code=404, msg="评测不存在")
     
     db_problem = db.db_problem.get_problem_by_id(db=db_session, _problem_id=db_submission._problem_id)
     if db_problem is None:
+        db.db_log.add_log(db=db_session, user_id=db_login.id, _problem_id=None, action="view_log", status=404)
         raise APIException(status_code=404, msg="题目不存在")
     if db_login.id != db_submission.user_id:
         if db_login.role != "admin" and not db_problem.log_visibility:
+            db.db_log.add_log(db=db_session, user_id=db_login.id, _problem_id=db_submission._problem_id, action="view_log", status=403)
             raise APIException(status_code=403, msg="权限不足")
     
     data = None
@@ -101,6 +104,6 @@ async def get_submission_log(submission_id:int, db_login:UserModel=Depends(requi
         else:
             data = SubmissionLogResponse.from_orm(db_submission)
     
-    db.db_log.add_log(db=db_session, user_id=db_login.id, _problem_id=db_submission._problem_id, action="view_log")
+    db.db_log.add_log(db=db_session, user_id=db_login.id, _problem_id=db_submission._problem_id, action="view_log", status=200)
 
     return {"msg": "success", "data": data}

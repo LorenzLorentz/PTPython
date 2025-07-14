@@ -2,8 +2,8 @@ from sqlalchemy.orm import Session
 from app.db.models import LogModel, ProblemModel
 from datetime import datetime
 
-def add_log(db:Session, user_id:int, _problem_id:int, action:str):
-    db_log = LogModel(user_id=user_id, _problem_id=_problem_id, action=action)
+def add_log(db:Session, user_id:int, _problem_id:int, action:str, status:int):
+    db_log = LogModel(user_id=user_id, _problem_id=_problem_id, action=action, status=status)
     db.add(db_log)
     db.commit()
     db.refresh(db_log)

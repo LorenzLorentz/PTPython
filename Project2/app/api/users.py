@@ -70,7 +70,7 @@ async def permission_adjust(user_id:int, payload:UserRolePayload, db_admin:UserM
     if db_user is None:
         raise APIException(status_code=404, msg="用户不存在")
 
-    # 记录操作日志
+    db.db_log.add_log(db=db_session, user_id=db_admin.id, _problem_id=None, action="view_log", status=200)
 
     return {"msg": "role updated", "data": db_user}
 

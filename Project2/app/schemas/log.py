@@ -9,12 +9,13 @@ class LogBase(BaseModel):
     problem_id:str = Field(..., description="题目id")
     action:str = Field(..., description="行为")
     time:datetime = Field(datetime.today(), description="时间")
+    status:int = Field(200, description="状态码")
 
     model_config = ConfigDict(from_attributes=True)
 
 """Response"""
 class LogResponse(LogBase):
-    pass
+    problem_id:str = Field("", description="题目id")
 
 """Params"""
 class LogQueryParams(BaseModel):

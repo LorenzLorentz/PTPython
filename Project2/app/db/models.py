@@ -170,6 +170,7 @@ class LogModel(Base):
     
     action = Column(String(255), nullable=False)
     time = Column(DateTime, server_default=func.now(), nullable=False)
+    status = Column(Integer, default=200, nullable=False)
 
     # ForeignKey
     user_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=False)

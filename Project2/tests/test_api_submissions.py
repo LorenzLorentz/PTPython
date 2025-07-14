@@ -143,7 +143,7 @@ def test_get_submission_result_cpp(client):
     submission_data = {
         "problem_id": problem_id,
         "language": "cpp",
-        "code": '#include <stdio.h>\nint main(){int a,b;\nscanf("%\d%\d",&a,&b);\nprintf("%\d",a+b);\nreturn 0;\n}'
+        "code": '#include <stdio.h>\nint main(){int a,b;\nscanf("%d%d",&a,&b);\nprintf("%d",a+b);\nreturn 0;\n}'
     }
 
     submit_response = client.post("/api/submissions/", json=submission_data)
