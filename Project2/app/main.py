@@ -7,6 +7,7 @@ from app.api.utils.exception import APIException
 from app.db.database import SessionLocal, Base, engine
 from app.api.utils.data import seed_ini_data
 
+# Base.metadata.drop_all(bind=engine)
 Base.metadata.create_all(bind=engine)
 with SessionLocal() as db:
     seed_ini_data(db)

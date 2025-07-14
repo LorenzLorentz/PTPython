@@ -1,6 +1,5 @@
 from sqlalchemy.orm import Session
-from app.db.db_language import get_language_by_name
-from app.db.models import SubmissionModel, StatusCategory, ProblemModel
+from app.db.models import SubmissionModel, SubmissionStatusCategory, ProblemModel
 from app.schemas.submission import SubmissionAddPayload
 
 def add_submission(db:Session, submission:SubmissionAddPayload, _problem_id:int, language_id:int, user_id:int):
@@ -14,8 +13,8 @@ def add_submission(db:Session, submission:SubmissionAddPayload, _problem_id:int,
     db.commit()
     db.refresh(db_submission)
     
-    from app.judger.tasks import eval
-    eval.delay(db_submission.id)
+    from app.judger.judge import eval
+    eval(db_submission.id)
 
     return db_submission
 
@@ -53,14 +52,14 @@ def get_submission_list(db:Session, user_id:int, problem_id:str, status:str, pag
 def reset_submission(db:Session, submission_id:int):
     db_submission = db.query(SubmissionModel).filter(SubmissionModel.id == submission_id).first()
     if db_submission:
-        db_submission.status = StatusCategory.PENDING
+        db_submission.status = SubmissionStatusCategory.PENDING
         db_submission.test_case_results = []
         db_submission.time = 0.0
         db_submission.memory = 0
         db_submission.counts = 0
 
-        from app.judger.tasks import eval
-        eval.delay(db_submission.id)
+        from app.judger.judge import eval
+        eval(db_submission.id)
         
         db.commit()
         db.refresh(db_submission)
