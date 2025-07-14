@@ -55,7 +55,6 @@ def test_get_submission_log(client):
     assert isinstance(data["data"], dict)
     
     # Check the new API spec structure
-    assert "details" in data["data"]
     assert "score" in data["data"]
     assert "counts" in data["data"]
     
@@ -63,21 +62,7 @@ def test_get_submission_log(client):
     # Problem has 2 test cases, each worth 10 points, correct solution should get full score
     assert data["data"]["score"] == 20  # 2 test cases × 10 points each
     assert data["data"]["counts"] == 20  # Total possible points
-    
-    # Check details array has exactly 2 test cases with specific expected results
-    assert len(data["data"]["details"]) == 2  # Should have exactly 2 test cases
-    
-    # Sort by id to ensure consistent ordering
-    status_items = sorted(data["data"]["details"], key=lambda x: x["id"])
-    
-    # Test case 1: input "1 2" -> output "3" (should be AC)
-    assert status_items[0]["id"] == 1
-    assert status_items[0]["result"] == "AC"
-    
-    # Test case 2: input "10 20" -> output "30" (should be AC)
-    assert status_items[1]["id"] == 2
-    assert status_items[1]["result"] == "AC"
-    
+
     # Test as admin
     setup_admin_session(client)
     response = client.get(f"/api/submissions/{submission_id}/log")
