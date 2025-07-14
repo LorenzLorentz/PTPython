@@ -87,7 +87,7 @@ async def get_submission_log(submission_id:int, db_login:UserModel=Depends(requi
     db_problem = db.db_problem.get_problem_by_id(db=db_session, _problem_id=db_submission._problem_id)
     if db_problem is None:
         raise APIException(status_code=404, msg="题目不存在")
-    if db_login.id is not db_submission.user_id:
+    if db_login.id != db_submission.user_id:
         if db_login.role != "admin" and not db_problem.log_visibility:
             raise APIException(status_code=403, msg="权限不足")
     
