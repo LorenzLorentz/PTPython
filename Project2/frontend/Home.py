@@ -1,5 +1,5 @@
 import streamlit as st
-from utils import api_client
+from frontend import api_client
 
 st.set_page_config(page_title="Online Judge", page_icon="⚖️")
 

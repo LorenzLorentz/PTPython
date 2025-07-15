@@ -34,6 +34,7 @@ def set_data(db:Session, data:DataImport):
             problem_data = problem.model_dump()
             samples_data = problem_data.pop("samples", [])
             testcases_data = problem_data.pop("testcases", [])
+            spj_language_name = problem_data.pop("spj_language_name", None)
             exist = db.query(ProblemModel).filter(ProblemModel.problem_id == problem.problem_id).first()
 
             db_problem = None
