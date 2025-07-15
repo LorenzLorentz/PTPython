@@ -137,7 +137,7 @@ def _run_single(
             except docker.errors.NotFound:
                 pass
 
-def _prepare(submission_id:int):
+def _collect(submission_id:int):
     """获取信息, 编译程序"""
     work_dir = os.path.join(WORKDIR_BASE, str(submission_id))
     os.makedirs(work_dir, exist_ok=True)
@@ -289,5 +289,5 @@ def _error(submission_id:int, result:StatusCategory, work_dir:str, err_msg:str="
             shutil.rmtree(work_dir)
 
 def eval(submission_id: int):
-    process = multiprocessing.Process(target=_prepare, args=(submission_id,))
+    process = multiprocessing.Process(target=_collect, args=(submission_id,))
     process.start()

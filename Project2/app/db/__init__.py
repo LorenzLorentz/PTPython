@@ -6,3 +6,4 @@ import app.db.db_submission as db_submission
 import app.db.db_language as db_language
 import app.db.db_log as db_log
 import app.db.db_data as db_data
+import app.db.db_plagiarism_task as db_task

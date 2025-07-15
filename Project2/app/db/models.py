@@ -1,4 +1,5 @@
 import enum
+from typing import List, Optional
 from sqlalchemy import Column, Integer, String, ForeignKey, Float, DateTime, JSON, Boolean, Enum, Text, func
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -143,6 +144,7 @@ class SubmissionModel(Base):
     counts = Column(Integer, default=0, nullable=False)
     time = Column(Float, default=0.0, nullable=False)
     memory = Column(Integer, default=0, nullable=False)
+    pdg = Column(JSON, nullable=True)
 
     # ForeignKey
     _problem_id = Column(Integer, ForeignKey("problems.id"), index=True, nullable=False)
@@ -189,3 +191,30 @@ class LogModel(Base):
         if self.problem:
             return self.problem.problem_id
         return None
+    
+class PlagiarismTaskModel(Base):
+    __tablename__ = "plagiarism_tasks"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    
+    threshold = Column(Float, default=0.8, nullable=False)
+    result = Column(Boolean, default=False, nullable=False)
+
+    sim_list = Column(JSON, nullable=False, default=list)
+    sim_abstract = Column(JSON, nullable=True)
+
+    # ForeignKey
+    _problem_id = Column(Integer, ForeignKey("problems.id"), index=True, nullable=True)
+    submission_id = Column(Integer, ForeignKey("submssions.id"), index=True, nullable=False)
+    
+    # RelationShips
+    problem = relationship("ProblemModel", back_populates="plagiarism_task")
+    submission = relationship("SubmissionModel", back_populates="plagiarism_task")
+    sim_submissions = relationship("SubmissionModel", back_populates="plagiarism_task")
+    
+    @hybrid_property
+    def sim_submission_id_list(self) -> List[int]:
+        if self.sim_submissions:
+            return [submission.id for submission in self.sim_submissions]
+        else:
+            return []

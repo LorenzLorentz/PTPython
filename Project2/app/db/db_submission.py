@@ -16,6 +16,9 @@ def add_submission(db:Session, submission:SubmissionAddPayload, _problem_id:int,
     from app.judger.judge import eval
     eval(db_submission.id)
 
+    from app.plagiarism.interface import build
+    build(db_submission.id)
+
     return db_submission
 
 def get_submission(db:Session, submission_id:int):
