@@ -3,7 +3,7 @@ import os
 import shutil
 import multiprocessing
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from requests.exceptions import ReadTimeout
 
 from app.db.database import SessionLocal
@@ -48,12 +48,80 @@ STATUS_DICT = {
     "UNK": StatusCategory.UNK,
 }
 
+def _prepare_spj(work_dir:str,problem:ProblemModel, memory_limit:int) -> Optional[str]:
+    spj_lang = problem.spj_language
+    spj_lang_name = spj_lang.name
+    spj_src_filename = f"spj{spj_lang.file_ext or ''}"
+    
+    spj_code_path = os.path.join(work_dir, spj_src_filename)
+    with open(spj_code_path, "w") as f:
+        f.write(problem.spj_code)
+
+    if spj_lang.compile_cmd:
+        spj_compile_cmd = spj_lang.compile_cmd.replace("main.cpp", spj_src_filename).replace("main", "spj")
+        try:
+            client.containers.run(
+                image=DOCKER_IMAGE[spj_lang_name],
+                command=spj_compile_cmd,
+                volumes={work_dir: {'bind': '/app', 'mode': 'rw'}},
+                working_dir='/app',
+                network_disabled=True,
+                user='root',
+                mem_limit=f"{memory_limit * 2}m",
+                auto_remove=True,
+            )
+            if not os.path.exists(os.path.join(work_dir, "spj")):
+                raise RuntimeError("SPJ compilation did not produce an executable.")
+            return "./spj"
+        except docker.errors.ContainerError as e:
+            err_msg = e.stderr.decode('utf-8', errors='ignore') if e.stderr else str(e)
+            raise RuntimeError(f"SPJ Compilation Error: {err_msg}")
+    else:
+        spj_run_cmd = spj_lang.run_cmd.replace("main.py", spj_src_filename)
+        return spj_run_cmd
+
+def _run_spj(
+    work_dir:str, spj_run_cmd:str, spj_language_name:str,
+    input_file:str, user_output_file:str, answer_file:str
+) -> str:
+    container = None
+    try:
+        spj_command = f"{spj_run_cmd} {input_file} {user_output_file} {answer_file}"
+        container = client.containers.run(
+            image=DOCKER_IMAGE[spj_language_name],
+            command=spj_command,
+            volumes={work_dir: {'bind': '/app', 'mode': 'rw'}},
+            working_dir='/app',
+            network_disabled=True,
+            user='nobody',
+            detach=True
+        )
+        
+        result_info = container.wait(timeout=2)
+        status_code = result_info.get('StatusCode', -1)
+        spj_out = container.logs(stdout=True, stderr=False).decode('utf-8', errors='ignore')
+        
+        if status_code == 0:
+            return spj_out
+        else:
+            return None
+    except Exception as e:
+        return None
+    finally:
+        if container:
+            try:
+                container.remove(force=True)
+            except:
+                pass
+
 def _run_single(
-    test_case_result_id:int, case_id:int, work_dir:str, run_cmd:str, language_name:str,
+    test_case_result_id:int, case_id:int, 
+    work_dir:str, 
+    run_cmd:str, language_name:str,
     test_case_input:str, test_case_output:str, time_limit:float, memory_limit:int,
-    judge_mode:str, spj:str
+    judge_mode:str, spj_run_cmd:str, spj_language_name:str,
 ) -> Dict[str, Any]:
-    """运行测例"""    
+    """运行测例"""
     input_filename = f"{test_case_result_id}.in"
     input_path = os.path.join(work_dir, input_filename)
     with open(input_path, "w") as f:
@@ -109,9 +177,25 @@ def _run_single(
                 if stdout != test_case_output:
                     result_status = "WA"
             elif judge_mode == "spj":
-                # TBD!
-                if stdout.rstrip() != test_case_output.rstrip():
-                    result_status = "WA"
+                if spj_run_cmd and spj_language_name:
+                    user_out_file = f"{test_case_result_id}.user.out"
+                    ans_file = f"{test_case_result_id}.ans"
+                    with open(os.path.join(work_dir, user_out_file), "w") as f: f.write(stdout)
+                    with open(os.path.join(work_dir, ans_file), "w") as f: f.write(test_case_output)
+                    
+                    score = _run_spj(work_dir, spj_run_cmd, spj_language_name, input_filename, user_out_file, ans_file)
+                    try:
+                        if score == 10:
+                            result_status = "AC"
+                        elif 0 <= score <10:
+                            result_status = "WA"
+                        else:
+                            result_status = "UNK"
+                    except:
+                        result_status = "UNK"
+                else:
+                    if stdout.rstrip() != test_case_output.rstrip():
+                        result_status = "WA"
 
         return {
             "test_case_result_id": test_case_result_id, "result": result_status,
@@ -162,13 +246,9 @@ def _collect(submission_id:int):
         code_path = os.path.join(work_dir, "main" + (db_language.file_ext or ""))
         with open(code_path, "w") as f:
             f.write(db_submission.code)
-        
-        print(123, db_language.file_ext)
 
         if db_language.compile_cmd:
-            print(234)
             try:
-                print(345)
                 client = docker.from_env(timeout=10)
                 client.containers.run(
                     image=DOCKER_IMAGE.get(db_language.name),
@@ -190,6 +270,15 @@ def _collect(submission_id:int):
                 _error(submission_id, StatusCategory.CE, work_dir, err_msg=error_message)
                 return
 
+        if db_problem.judge_mode == 'spj':
+            try:
+                spj_run_cmd = _prepare_spj(work_dir, db_problem, memory_limit)
+            except (ValueError, RuntimeError, docker.errors.DockerException) as e:
+                _error(submission_id, StatusCategory.UNK, work_dir, f"System Error: SPJ setup failed. {e}")
+                return
+        else:
+            spj_run_cmd = None
+
         db_submission.status = SubmissionStatusCategory.PENDING
         db.commit()
         
@@ -209,7 +298,8 @@ def _collect(submission_id:int):
                     time_limit=time_limit,
                     memory_limit=memory_limit,
                     judge_mode=db_problem.judge_mode,
-                    spj=db_problem.spj
+                    spj_run_cmd=spj_run_cmd,
+                    spj_language_name=db_problem.spj_language_name,
                 ): case for i, case in enumerate(db_problem.testcases)
             }
             
@@ -279,7 +369,7 @@ def _error(submission_id:int, result:StatusCategory, work_dir:str, err_msg:str="
                     memory=0,
                     output="",
                     err_msg=err_msg,
-                    case_id=case.id
+                    case_id=case.id,
                 ) for i, case in enumerate(db_submission.problem.testcases)
             ]
             db.commit()

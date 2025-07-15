@@ -98,6 +98,13 @@ class ProblemModel(Base):
     logs = relationship("LogModel", back_populates="problem")
     samples = relationship("SampleModel", back_populates="problem", cascade="all, delete-orphan")
     testcases = relationship("CaseModel", back_populates="problem", cascade="all, delete-orphan")
+    plagiarism_tasks = relationship("PlagiarismTaskModel", back_populates="problem")
+
+    @hybrid_property
+    def spj_language_name(self) -> str | None:
+        if self.spj_language:
+            return self.spj_language.name
+        return None
 
 class LanguageModel(Base):
     __tablename__ = "languages"
@@ -156,6 +163,7 @@ class SubmissionModel(Base):
     problem = relationship("ProblemModel", back_populates="submissions")
     language = relationship("LanguageModel", back_populates="submissions")
     test_case_results = relationship("TestCaseResultModel", back_populates="submission", cascade="all, delete-orphan")
+    plagiarism_task = relationship("PlagiarismTaskModel", back_populates="submission", uselist=False, cascade="all, delete-orphan")
 
     @hybrid_property
     def problem_id(self) -> str | None:
@@ -202,19 +210,12 @@ class PlagiarismTaskModel(Base):
 
     sim_list = Column(JSON, nullable=False, default=list)
     sim_abstract = Column(JSON, nullable=True)
+    sim_submission_id_list = Column(JSON, nullable=True)
 
     # ForeignKey
     _problem_id = Column(Integer, ForeignKey("problems.id"), index=True, nullable=True)
-    submission_id = Column(Integer, ForeignKey("submssions.id"), index=True, nullable=False)
+    submission_id = Column(Integer, ForeignKey("submissions.id"), index=True, nullable=False)
     
     # RelationShips
-    problem = relationship("ProblemModel", back_populates="plagiarism_task")
-    submission = relationship("SubmissionModel", back_populates="plagiarism_task")
-    sim_submissions = relationship("SubmissionModel", back_populates="plagiarism_task")
-    
-    @hybrid_property
-    def sim_submission_id_list(self) -> List[int]:
-        if self.sim_submissions:
-            return [submission.id for submission in self.sim_submissions]
-        else:
-            return []
+    problem = relationship("ProblemModel", back_populates="plagiarism_tasks")
+    submission = relationship("SubmissionModel", back_populates="plagiarism_task", foreign_keys=[submission_id])

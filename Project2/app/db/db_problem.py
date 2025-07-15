@@ -15,6 +15,7 @@ def add_problem(db:Session, problem:ProblemAddPayload):
     problem_data = problem.model_dump()
     testcases_data = problem_data.pop("testcases", [])
     samples_data = problem_data.pop("samples", [])
+    spj_language_name = problem_data.pop("spj_language_name", "")
     
     db_problem = ProblemModel(**problem_data)
     db_problem.testcases = [CaseModel(**case) for case in testcases_data]
