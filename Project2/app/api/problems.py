@@ -8,7 +8,7 @@ from app.db.models import UserModel
 from app.schemas.response import ResponseModel
 from app.schemas.problem import (
     ProblemInfoResponse, ProblemBriefResponse, ProblemIDResponse, ProblemLogVisibilityResponse,
-    ProblemAddPayload, ProblemSetLogVisibilityPayload
+    ProblemAddPayload, ProblemSetLogVisibilityPayload, ProblemSetJudgeModePayload
 )
 from app.api.utils.permission import require_login, require_admin
 from app.api.utils.exception import APIException
@@ -63,6 +63,15 @@ async def set_log_visibility(problem_id:str, payload:ProblemSetLogVisibilityPayl
         raise APIException(status_code=404, msg="题目不存在")
     
     return {"msg": "log visibility updated", "data": db_problem}
+
+@router.put("/{problem_id}/judge_mode")
+async def set_judge_mode(problem_id:str, payload:ProblemSetJudgeModePayload, db_admin=Depends(require_admin), db_session=Depends(get_db)):
+    """设置评测策略"""
+    db_problem = db.db_problem.set_problem_judge_mode(db=db_session, problem_id=problem_id, judge_mode=payload.judge_mode)
+    if db_problem is None:
+        raise APIException(status_code=404, msg="题目不存在")
+    
+    return {"msg": "judege mode updated", "data": db_problem}
 
 @router.post("/{problem_id}/spj", response_model=ResponseModel[ProblemIDResponse])
 async def upload_spj(problem_id:str, file:UploadFile=File(...), db_admin=Depends(require_admin), db_session=Depends(get_db)):

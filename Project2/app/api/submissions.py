@@ -23,6 +23,10 @@ async def submit(payload:SubmissionAddPayload, db_login:UserModel=Depends(requir
     if db_problem is None:
         raise APIException(status_code=404, msg="题目不存在")
 
+    if db_problem.judge_mode == "spj":
+        if db_problem.spj_code is None or db_problem.spj_language_id is None:
+            raise APIException(status_code=404, msg="SPJ脚本不存在")
+
     language_name = payload.language_name
     db_language = db.db_language.get_language_by_name(db=db_session, name=language_name)
     if db_language is None:

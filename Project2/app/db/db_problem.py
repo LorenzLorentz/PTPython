@@ -42,6 +42,18 @@ def set_problem_log_visibility(db:Session, problem_id:str, log_visibility:bool):
         return db_problem
     return None
 
+def set_problem_judge_mode(db:Session, problem_id:str, judge_mode:str):
+    db_problem = db.query(ProblemModel).filter(ProblemModel.problem_id == problem_id).first()
+    if db_problem:
+        db_problem.judge_mode = judge_mode
+        if judge_mode != "spj":
+            db_problem.spj_code = None
+            db_problem.spj_language_id = None
+        db.commit()
+        db.refresh(db_problem)
+        return db_problem
+    return None
+
 def add_spj(db:Session, problem_id:str, language_id:int, code:str):
     db_problem = db.query(ProblemModel).filter(ProblemModel.problem_id == problem_id).first()
     if db_problem:

@@ -65,3 +65,6 @@ class ProblemAddPayload(ProblemBase):
 
 class ProblemSetLogVisibilityPayload(BaseModel):
     public_cases:bool = Field(..., description="是否允许所有用户查看测例详情")
+
+class ProblemSetJudgeModePayload(BaseModel):
+    judge_mode:str = Field("standard", description="评测策略")
