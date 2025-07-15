@@ -9,6 +9,7 @@ from app.schemas.language import LanguageInfoResponse, LanguageAddPayload, Langu
 from app.schemas.response import ResponseModel
 from app.api.utils.permission import require_login
 from app.api.utils.exception import APIException
+from app.judger.judge import check_cmd_available
 
 router = APIRouter()
 
@@ -18,6 +19,9 @@ async def add_language(payload:LanguageAddPayload, user_login:UserModel=Depends(
     exist = db.db_language.get_language_by_name(db=db_session, name=payload.name)
     if exist:
         return {"msg": "language registered", "data": exist}
+    
+    if not check_cmd_available(payload.compile_cmd) or not check_cmd_available(payload.run_cmd):
+        raise APIException(status_code=400, msg="非法命令!!!")
 
     db_language = db.db_language.add_language(db=db_session, language=payload)
     return {"msg": "language registered", "data": db_language}
