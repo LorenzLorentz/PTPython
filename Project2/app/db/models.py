@@ -86,8 +86,11 @@ class ProblemModel(Base):
     difficulty = Column(String(50), nullable=True)
     log_visibility = Column(Boolean, default=False, nullable=False)
 
+    # SPJ
     judge_mode = Column(String(50), default="standard", nullable=False)
-    spj = Column(JSON, nullable=True)
+    spj_code = Column(Text, nullable=True)
+    spj_language_id = Column(Integer, ForeignKey("languages.id"), nullable=True)
+    spj_language = relationship("LanguageModel", back_populates="problem")
 
     # Relationships
     submissions = relationship("SubmissionModel", back_populates="problem")
@@ -108,6 +111,7 @@ class LanguageModel(Base):
     memory_limit = Column(Integer, default=0, nullable=False)
 
     # Relationships
+    problem = relationship("ProblemModel", back_populates="spj_language")
     submissions = relationship("SubmissionModel", back_populates="language")
 
 class TestCaseResultModel(Base):

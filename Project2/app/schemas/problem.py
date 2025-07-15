@@ -18,7 +18,6 @@ class ProblemBase(BaseModel):
     samples:List[Case] = Field(..., description="样例输入输出")
     constraints:str = Field(..., description="数据范围和限制条件")
     testcases:List[Case] = Field(..., description="测试点")
-    judge_mode:str = Field("standard", description="评测策略")
 
     # 可选字段
     hint:str = Field("", description="额外提示")
@@ -29,7 +28,11 @@ class ProblemBase(BaseModel):
     author:str = Field("", description="题目作者")
     difficulty:str = Field("", description="难度等级")
     log_visibility:bool = Field(False, description="日志/测例可见性")
-    spj:Optional[dict] = Field(None, description="SPJ脚本")
+    
+    # 特殊评测
+    judge_mode:str = Field("standard", description="评测策略")
+    spj_code:Optional[str] = Field(None, description="SPJ脚本代码")
+    spj_language_name:Optional[str] = Field(None, description="SPJ脚本语言")
 
     model_config = ConfigDict(from_attributes=True)
 

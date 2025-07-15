@@ -14,3 +14,6 @@ def get_language_list(db:Session):
 
 def get_language_by_name(db:Session, name:str):
     return db.query(LanguageModel).filter(LanguageModel.name == name).first()
+
+def get_language_by_file_ext(db:Session, file_ext:str):
+    return db.query(LanguageModel).filter(LanguageModel.file_ext == file_ext).first()

@@ -29,6 +29,9 @@ async def add_problem(payload:ProblemAddPayload, db_login:UserModel=Depends(requ
     if exist:
         raise APIException(status_code=409, msg="id 已存在")
 
+    if payload.judge_mode is not None and payload.judge_mode not in {"standard", "strict", "spj"}:
+        raise APIException(status_code=400, msg="参数错误")
+
     db_problem = db.db_problem.add_problem(db=db_session, problem=payload)
     return {"msg": "add success", "data": db_problem}
 
@@ -64,12 +67,16 @@ async def set_log_visibility(problem_id:str, payload:ProblemSetLogVisibilityPayl
 @router.post("/{problem_id}/spj", response_model=ResponseModel[ProblemIDResponse])
 async def upload_spj(problem_id:str, file:UploadFile=File(...), db_admin=Depends(require_admin), db_session=Depends(get_db)):
     """上传 SPJ 脚本"""
-    spj = {
-        "file_ext": file.filename,
-        "content": await file.read(),
-    }
+    code = await file.read()
+    file_ext = None
+    if file.filename.endswith(".cpp"):
+        file_ext = ".cpp"
+    elif file.filename.endswith(".py"):
+        file_ext = ".py"
 
-    db_problem = db.db_problem.add_spj(db=db_session, problem_id=problem_id, spj=spj)
+    db_language = db.db_language.get_language_by_file_ext(db=db_session, file_ext=file_ext)
+    
+    db_problem = db.db_problem.add_spj(db=db_session, problem_id=problem_id, language_id=db_language.id, code=code)
     if db_problem is None:
         raise APIException(status_code=404, msg="题目不存在")
     

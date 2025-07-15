@@ -42,14 +42,23 @@ def set_problem_log_visibility(db:Session, problem_id:str, log_visibility:bool):
         return db_problem
     return None
 
-def add_spj(db:Session, problem_id:str, spj:str):
-    pass
+def add_spj(db:Session, problem_id:str, language_id:int, code:str):
+    db_problem = db.query(ProblemModel).filter(ProblemModel.problem_id == problem_id).first()
+    if db_problem:
+        db_problem.judge_mode = "spj"
+        db_problem.spj_code = code
+        db_problem.spj_language_id = language_id
+        db.commit()
+        db.refresh(db_problem)
+        return db_problem
+    return None
 
 def delete_spj(db:Session, problem_id:str):
     db_problem = db.query(ProblemModel).filter(ProblemModel.problem_id == problem_id).first()
     if db_problem:
         db_problem.judge_mode = "standard"
-        db_problem.spj = None
+        db_problem.spj_code = None
+        db_problem.spj_language_id = None
         db.commit()
         db.refresh(db_problem)
         return db_problem

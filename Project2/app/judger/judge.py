@@ -137,7 +137,7 @@ def _run_single(
             except docker.errors.NotFound:
                 pass
 
-def _prepare(submission_id: int):
+def _prepare(submission_id:int):
     """获取信息, 编译程序"""
     work_dir = os.path.join(WORKDIR_BASE, str(submission_id))
     os.makedirs(work_dir, exist_ok=True)
