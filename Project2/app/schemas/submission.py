@@ -50,9 +50,17 @@ class SubmissionResultResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+class SubmissionResultWithIDResponse(BaseModel):
+    submission_id:int = Field(..., validation_alias="id", description="评测id")
+    status:str = Field(..., description="评测状态")
+    score:int = Field(..., description="得分")
+    counts:int = Field(..., description="总分数")
+
+    model_config = ConfigDict(from_attributes=True)
+
 class SubmissionListResponse(BaseModel):
     total:int = Field(..., description="总数")
-    submissions:List[SubmissionResultResponse] = Field(..., description="评测列表")
+    submissions:List[SubmissionResultWithIDResponse] = Field(..., description="评测列表")
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -80,5 +88,5 @@ class SubmissionQueryParams(BaseModel):
     user_id:Optional[int] = Field(None, description="用户id")
     problem_id:Optional[str] = Field(None, description="题目id")
     status:Optional[str] = Field(None, description="评测状态")
-    page:Optional[int] = Field(None, description="页码", ge=1)
-    page_size:Optional[int] = Field(None, description="每页大小", gt=0)
+    page:Optional[int] = Field(None, description="页码")
+    page_size:Optional[int] = Field(None, description="每页大小")

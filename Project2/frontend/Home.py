@@ -1,5 +1,5 @@
 import streamlit as st
-from frontend import api_client
+from api import api_client
 
 st.set_page_config(page_title="Online Judge", page_icon="⚖️")
 
@@ -8,6 +8,8 @@ if "api_session" not in st.session_state:
     st.session_state.api_session = None
 if "username" not in st.session_state:
     st.session_state.username = None
+if "user_id" not in st.session_state:
+    st.session_state.user_id = None
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
@@ -15,9 +17,9 @@ if "logged_in" not in st.session_state:
 def handle_logout():
     st.session_state.api_session = None
     st.session_state.username = None
+    st.session_state.user_id = None
     st.session_state.logged_in = False
     st.success("您已成功登出!")
-    # st.experimental_rerun()
 
 """页面渲染"""
 st.title("Online Judge 系统")
@@ -41,10 +43,10 @@ else:
             if not username or not password:
                 st.warning("请输入用户名和密码.")
             else:
-                session_obj = api_client.login(username, password)
+                session_obj, user_id = api_client.login(username, password)
                 
                 if session_obj:
                     st.session_state.api_session = session_obj
                     st.session_state.username = username
                     st.session_state.logged_in = True
-                    # st.experimental_rerun()
+                    st.session_state.user_id = user_id

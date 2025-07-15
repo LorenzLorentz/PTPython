@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from frontend import api_client
+from api import api_client
 from streamlit_autorefresh import st_autorefresh
 
 st.set_page_config(page_title="题目与提交", page_icon="📝")

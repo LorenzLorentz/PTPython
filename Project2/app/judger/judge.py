@@ -361,7 +361,10 @@ def _collect(submission_id:int):
             elif current_res_category == StatusCategory.AC:
                 total_score += 10
         
-        db_submission.status = SubmissionStatusCategory.SUCCESS if final_status_category == StatusCategory.AC else SubmissionStatusCategory.ERROR
+        db_submission.status = SubmissionStatusCategory.SUCCESS if (
+            final_status_category == StatusCategory.AC
+            or final_status_category == StatusCategory.WA
+        ) else SubmissionStatusCategory.ERROR
         db_submission.time = max_time
         db_submission.memory = max_memory
         db_submission.score = total_score
