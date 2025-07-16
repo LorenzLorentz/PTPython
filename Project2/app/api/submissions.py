@@ -59,8 +59,8 @@ async def get_submission_result_list(params:SubmissionQueryParams=Depends(), db_
         if not is_admin and user_id != params.user_id:
             raise APIException(403, "权限不足")
     else:
-        if not is_admin:
-            raise APIException(403, "权限不足")
+        if not is_admin and params.problem_id is not None:
+            params.user_id = user_id
     
     if params.user_id is None and params.problem_id is None:
         raise APIException(400, "一级条件不可以全部为空")

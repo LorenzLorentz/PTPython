@@ -169,9 +169,6 @@ def _run_single(
         elif status_code != 0:
             result_status = "RE"
         else:
-            with open("error.log", "a") as f:
-                print(judge_mode, file=f)
-
             if judge_mode == "standard":
                 if stdout.rstrip() != test_case_output.rstrip():
                     result_status = "WA"

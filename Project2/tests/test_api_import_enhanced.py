@@ -79,6 +79,7 @@ def test_data_import_complete_verification(client):
                 "problem_id": "imported_prob1",
                 "language": "python",
                 "code": "a, b = map(int, input().split())\nprint(a + b)",
+                "status": "success",
                 "details": [
                     {"id": 1, "result": "AC", "time": 1.01, "memory": 130},
                     {"id": 2, "result": "AC", "time": 1.02, "memory": 132}

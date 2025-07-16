@@ -81,7 +81,7 @@ if __name__ == "__main__":
     submission_id = submit_response.json()["data"]["submission_id"]
 
     # Wait for judging
-    time.sleep(5)
+    time.sleep(10)
 
     # Get submission result
     response = client.get(f"/api/submissions/{submission_id}")

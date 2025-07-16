@@ -7,7 +7,6 @@ from test_helpers import setup_admin_session, setup_user_session, reset_system
 def test_get_submission_log(client):
     """Test GET /api/submissions/{submission_id}/log"""
     # Set up admin session
-    reset_system(client)
     setup_admin_session(client)
     
     problem_id = "test_log_" + uuid.uuid4().hex[:4]
@@ -44,7 +43,7 @@ def test_get_submission_log(client):
     submission_id = submit_response.json()["data"]["submission_id"]
     
     # Wait for judging
-    time.sleep(10)
+    time.sleep(5) # 修改
     
     # Get submission log (as user)
     response = client.get(f"/api/submissions/{submission_id}/log")
