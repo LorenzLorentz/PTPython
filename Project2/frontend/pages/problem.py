@@ -99,18 +99,36 @@ if st.session_state.get("is_polling"):
     st.session_state.poll_count += 1 
 
     if result and result.get("status") != "pending":
-        st.success("评测完成!")
-        # 将最终结果存入 session_state
         st.session_state.final_result = {
             "status": result.get("status"),
             "score": result.get("score"),
-            "counts": result.get("counts")
+            "counts": result.get("counts"),
+            "raw": result,
         }
-        st.session_state.is_polling = False
-        status_placeholder.empty()
-        st.rerun()
+        if st.session_state.is_polling:
+            st.session_state.is_polling = False
+            st.rerun()
 
-# 4. 显示最终结果
 if st.session_state.get("final_result"):
-    st.subheader("最新评测结果")
-    st.json(st.session_state.final_result)
+    result = st.session_state.final_result
+    status = result.get("status", "Unknown")
+    score = result.get("score", 0)
+    counts = result.get("counts", 0)
+
+    st.subheader("评测结果")
+
+    # 状态提示
+    if status == "success" and score==counts:
+        st.success(f"恭喜! 评测通过!", icon="✅")
+    else:
+        st.error(f"评测出错: 状态为{status}", icon="🚨")
+
+    # 数据
+    col1, col2 = st.columns([1, 2])
+    with col1:
+        st.metric(label="**得分**", value=f"{score}")
+
+    with col2:
+        st.metric(label="**总分**", value=f"{counts}")
+    
+    st.markdown("---")

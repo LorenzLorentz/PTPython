@@ -20,8 +20,9 @@ def add_submission(db:Session, submission:SubmissionAddPayload, _problem_id:int,
     eval(db_submission.id)
 
     # 构建pdg
-    from app.plagiarism.interface import build
-    build(db_submission.id)
+    if language_id == 2:
+        from app.plagiarism.interface import build
+        build(db_submission.id)
 
     return db_submission
 

@@ -47,7 +47,7 @@ def seed_ini_data(db:Session):
     
     db.commit()
 
-def seed_other_data(db:Session):
+def seed_other_data(db:Session, no_submission=False):
     """注入题目和提交数据, 构建环境"""
     from app.judger.judge import eval
     from app.plagiarism.interface import build
@@ -94,6 +94,9 @@ def seed_other_data(db:Session):
     db.add(problem2)
     db.add(problem3)
     db.commit()
+
+    if no_submission:
+        return
 
     # 注入题目提交
     for i in range(3):

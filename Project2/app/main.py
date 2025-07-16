@@ -11,7 +11,7 @@ Base.metadata.drop_all(bind=engine)
 Base.metadata.create_all(bind=engine)
 with SessionLocal() as db:
     seed_ini_data(db)
-    # seed_other_data(db)
+    seed_other_data(db, no_submission=True)
 
 app = FastAPI(title="OJ System")
 
