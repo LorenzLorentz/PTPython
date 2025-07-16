@@ -8,6 +8,7 @@ from app.db.database import SessionLocal
 from app.db.models import SubmissionModel, PlagiarismTaskModel
 
 def build(submission_id:int):
+    """构建PDG"""
     db = SessionLocal()
     db_submission = db.get(SubmissionModel, submission_id)
     builder = PDGBuilder(db_submission.code)
@@ -16,11 +17,15 @@ def build(submission_id:int):
     db.commit()
 
 def _calc_single(pdg_self:dict, pdg_other:dict, submission_id:int) -> tuple[int, int, dict]:
+    """计算两个程序的PDG的相似度"""
     report = get_report(pdg_self, pdg_other)
     report = json.loads(report)
     return submission_id, report.get("sim_scores").get("sim_score"), report
 
 def _collect(task_id:int):
+    """发起相似度计算任务, 处理结果"""
+
+    # 获取同题目提交
     db = SessionLocal()
     db_task = db.get(PlagiarismTaskModel, task_id)
     db_submission = db.get(SubmissionModel, db_task.submission_id)
@@ -31,6 +36,7 @@ def _collect(task_id:int):
     if len(submissions) <= 1:
         return
 
+    # 发起相似度计算任务
     results = []
     with ProcessPoolExecutor() as executor:
         futures = {
@@ -45,6 +51,7 @@ def _collect(task_id:int):
         for future in as_completed(futures):
             results.append(future.result())
     
+    # 处理结果, 计算final_report(查重报告), sim_list(相似度最高的5个的相似度)和sim_submission_id_list(相似度最高的5个题目)
     max_sim = 0.0
     final_report = None
     sim_list = []
@@ -72,5 +79,6 @@ def _collect(task_id:int):
     db.commit()
 
 def eval(task_id:int):
+    """启动查重"""
     process = multiprocessing.Process(target=_collect, args=(task_id,))
     process.start()

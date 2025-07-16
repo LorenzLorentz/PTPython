@@ -49,14 +49,17 @@ STATUS_DICT = {
 }
 
 def _prepare_spj(work_dir:str,problem:ProblemModel, memory_limit:int) -> Optional[str]:
+    """准备数据, 编译spj脚本"""
     spj_lang = problem.spj_language
     spj_lang_name = spj_lang.name
     spj_src_filename = f"spj{spj_lang.file_ext or ''}"
     
+    # 写入spj脚本
     spj_code_path = os.path.join(work_dir, spj_src_filename)
     with open(spj_code_path, "wb") as f:
         f.write(problem.spj_code)
 
+    # 编译spj脚本, 返回spj的run cmd
     if spj_lang.compile_cmd:
         spj_compile_cmd = spj_lang.compile_cmd.replace("main.cpp", spj_src_filename).replace("main", "spj")
         try:
@@ -84,8 +87,10 @@ def _run_spj(
     work_dir:str, spj_run_cmd:str, spj_language_name:str,
     input_file:str, user_output_file:str, answer_file:str
 ) -> str:
+    """运行spj任务"""
     container = None
     try:
+        # 创建docker评测
         spj_command = f"{spj_run_cmd} {input_file} {user_output_file} {answer_file}"
         container = client.containers.run(
             image=DOCKER_IMAGE[spj_language_name],
@@ -97,6 +102,7 @@ def _run_spj(
             detach=True
         )
         
+        # 结果解析
         result_info = container.wait(timeout=2)
         status_code = result_info.get('StatusCode', -1)
 
@@ -121,6 +127,8 @@ def _run_single(
     judge_mode:str, spj_run_cmd:str, spj_language_name:str,
 ) -> Dict[str, Any]:
     """运行测例"""
+
+    # 写入测例输入
     input_filename = f"{test_case_result_id}.in"
     input_path = os.path.join(work_dir, input_filename)
     with open(input_path, "w") as f:
@@ -130,6 +138,7 @@ def _run_single(
     
     container = None
     try:
+        # 创建docker, 进行评测
         container = client.containers.run(
             image=DOCKER_IMAGE.get(language_name),
             command=run_command,
@@ -142,6 +151,7 @@ def _run_single(
             detach=True
         )
 
+        # 结果解析
         result_info = container.wait(timeout=time_limit*1.2)
         status_code = result_info.get('StatusCode', -1)
 
@@ -149,6 +159,7 @@ def _run_single(
         stderr = container.logs(stdout=False, stderr=True).decode('utf-8', errors='ignore')
         memory_used = container.stats(stream=False).get("memory_stats", {}).get("max_usage", 0) / (1024*1024)
 
+        # 时间占用解析
         time_parts = []
         user_stderr = []
         for line in stderr.splitlines():
@@ -160,6 +171,7 @@ def _run_single(
         time_used = sum(float(t) for t in time_parts)
         err_msg = "\n".join(user_stderr) if time_parts else stderr
 
+        # 结果处理
         result_status = "AC"
         score = None
         if time_used > time_limit:
@@ -176,12 +188,14 @@ def _run_single(
                 if stdout != test_case_output:
                     result_status = "WA"
             elif judge_mode == "spj":
+                # 执行spj评测
                 if spj_run_cmd and spj_language_name:
                     user_out_file = f"{test_case_result_id}.user.out"
                     ans_file = f"{test_case_result_id}.ans"
                     with open(os.path.join(work_dir, user_out_file), "w") as f: f.write(stdout)
                     with open(os.path.join(work_dir, ans_file), "w") as f: f.write(test_case_output)
                     
+                    # 结果解析
                     score = _run_spj(work_dir, spj_run_cmd, spj_language_name, input_filename, user_out_file, ans_file)
                     try:
                         if score == 10:
@@ -222,11 +236,14 @@ def _run_single(
 
 def _collect(submission_id:int):
     """获取信息, 编译程序"""
+
+    # 创建评测目录, 获取数据库Session
     work_dir = os.path.join(WORKDIR_BASE, str(submission_id))
     os.makedirs(work_dir, exist_ok=True)
     db = SessionLocal()
 
     try:
+        """信息获取"""
         db_submission = db.get(SubmissionModel, submission_id)
         if not db_submission:
             return
@@ -248,7 +265,7 @@ def _collect(submission_id:int):
 
         if db_language.compile_cmd:
             try:
-                client = docker.from_env(timeout=10)
+                # 创建docker, 进行编译
                 client.containers.run(
                     image=DOCKER_IMAGE.get(db_language.name),
                     command=db_language.compile_cmd,
@@ -260,6 +277,7 @@ def _collect(submission_id:int):
                     auto_remove=True,
                 )
 
+                # 编译失败
                 if not os.path.exists(os.path.join(work_dir, "main")):
                     _error(submission_id, StatusCategory.CE, work_dir, "Compiler did not produce an executable.")
                     return
@@ -269,6 +287,7 @@ def _collect(submission_id:int):
                 _error(submission_id, StatusCategory.CE, work_dir, err_msg=error_message)
                 return
 
+        """编译spj脚本, 准备spj信息"""
         if db_problem.judge_mode == 'spj':
             try:
                 spj_run_cmd = _prepare_spj(work_dir, db_problem, memory_limit)
@@ -283,6 +302,7 @@ def _collect(submission_id:int):
         
         test_case_results = []
 
+        """创建进程池, 进行评测"""
         with ProcessPoolExecutor() as executor:
             futures = {
                 executor.submit(
@@ -302,6 +322,7 @@ def _collect(submission_id:int):
                 ): case for i, case in enumerate(db_problem.testcases)
             }
             
+            # 收集返回数据
             for future in as_completed(futures):
                 test_case_results.append(future.result())
 
@@ -312,13 +333,13 @@ def _collect(submission_id:int):
         max_memory = 0.0
         total_score = 0
 
+        """解析结果, 计算time, memory, tot_score"""
         for res in test_case_results:
             max_time = max(max_time, res.get("time", 0))
             max_memory = max(max_memory, res.get("memory", 0))
             
             current_res_category = STATUS_DICT.get(res["result"], StatusCategory.UNK)
             
-            # Update final status based on precedence
             if STATUS_PRECEDENCE.get(current_res_category, 99) > STATUS_PRECEDENCE.get(final_status_category, 99):
                 final_status_category = current_res_category
             
@@ -328,6 +349,7 @@ def _collect(submission_id:int):
             elif current_res_category == StatusCategory.AC:
                 total_score += 10
         
+        """提交评测结果"""
         db_submission.status = SubmissionStatusCategory.SUCCESS if (
             final_status_category == StatusCategory.AC
             or final_status_category == StatusCategory.WA
@@ -339,6 +361,7 @@ def _collect(submission_id:int):
         print([res for res in test_case_results])
         print(max_time, max_memory, final_status_category, total_score, db_submission.counts)
         
+        """修改用户解决题数"""
         if db_submission.status == SubmissionStatusCategory.SUCCESS:
             db_user = db.get(UserModel, db_submission.user_id)
             db_user.resolve_count += 1
@@ -381,5 +404,6 @@ def _error(submission_id:int, result:StatusCategory, work_dir:str, err_msg:str="
             shutil.rmtree(work_dir)
 
 def eval(submission_id: int):
+    """启动评测"""
     process = multiprocessing.Process(target=_collect, args=(submission_id,))
     process.start()

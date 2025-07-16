@@ -15,6 +15,7 @@ with SessionLocal() as db:
 
 app = FastAPI(title="OJ System")
 
+# 注册中间件和路由
 app.add_middleware(SessionMiddleware, secret_key="PYTHON")
 app.include_router(api_router, prefix="/api")
 
@@ -22,6 +23,7 @@ app.include_router(api_router, prefix="/api")
 def read_root():
     return {"message": "Welcome to OJ"}
 
+"""修改Pydantic参数解析报错码"""
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request:Request, exc:RequestValidationError):
     return JSONResponse(
@@ -33,6 +35,7 @@ async def validation_exception_handler(request:Request, exc:RequestValidationErr
         },
     )
 
+"""注册自定义异常"""
 @app.exception_handler(APIException)
 async def api_exception_handler(request:Request, exc:APIException):
     return JSONResponse(

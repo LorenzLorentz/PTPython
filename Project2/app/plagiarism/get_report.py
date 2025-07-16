@@ -3,13 +3,14 @@ from app.plagiarism.build_pdg import PDGBuilder
 from app.plagiarism.calc_sim import GraphSimilarity
 
 def gene_report(pdg1:dict, pdg2:dict, sim_res:dict) -> str:
+    """生成评测报告"""
     node_mapping = sim_res['node_mapping']
     reverse_node_mapping = {v: k for k, v in node_mapping.items()}
     
     vis_nodes = []
     vis_edges = []
     
-    # 处理节点
+    """处理节点"""
     for node in pdg1['nodes']:
         status = "common" if node['id'] in node_mapping else "unique_p1"
         vis_nodes.append({
@@ -30,7 +31,7 @@ def gene_report(pdg1:dict, pdg2:dict, sim_res:dict) -> str:
                 "label": node['label']
             })
 
-    # 处理边
+    """处理边"""
     matched_p1_edges = {(e['p1_edge']['source'], e['p1_edge']['target'], e['p1_edge']['type']) for e in sim_res['matched_edges']}
     matched_p2_edges = {(e['p2_edge']['source'], e['p2_edge']['target'], e['p2_edge']['type']) for e in sim_res['matched_edges']}
 
@@ -53,7 +54,8 @@ def gene_report(pdg1:dict, pdg2:dict, sim_res:dict) -> str:
                 "type": etype,
                 "status": "unique_p2"
             })
-            
+    
+    """生成结果"""
     report = {
         "sim_scores": {
             "sim_score": sim_res['sim_score'],
@@ -73,6 +75,7 @@ def gene_report(pdg1:dict, pdg2:dict, sim_res:dict) -> str:
     return json.dumps(report, indent=2)
 
 def get_report(pdg1:dict, pdg2:dict) -> str:
+    """获取评测报告"""
     hashes1 = pdg1.get("hashed_nodes")
     hashes2 = pdg2.get("hashed_nodes")
 
