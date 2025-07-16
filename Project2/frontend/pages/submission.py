@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 from api import api_client
-from streamlit_autorefresh import st_autorefresh
 
 st.set_page_config(page_title="所有提交", page_icon="📝")
 
@@ -12,7 +11,7 @@ if not st.session_state.get("logged_in"):
 api_session = st.session_state.api_session
 st.title("📝 题目列表与代码提交")
 
-"""加载提交"""
+# """加载提交"""
 if 'problems_list' not in st.session_state:
     with st.spinner("正在加载提交列表..."):
         st.session_state.submission_list = api_client.get_submissions(api_session, st.session_state.user_id)

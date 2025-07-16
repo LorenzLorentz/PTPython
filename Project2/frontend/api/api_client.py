@@ -1,7 +1,7 @@
 import requests
 import streamlit as st
 
-BASE_URL = "http://127.0.0.1:8001" # TBD
+BASE_URL = "http://127.0.0.1:8001"
 
 """登录认证"""
 def get_auth_header(token: str) -> dict:

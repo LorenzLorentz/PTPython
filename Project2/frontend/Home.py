@@ -3,7 +3,7 @@ from api import api_client
 
 st.set_page_config(page_title="Online Judge", page_icon="⚖️")
 
-"""session state初始化"""
+# """session state初始化"""
 if "api_session" not in st.session_state:
     st.session_state.api_session = None
 if "username" not in st.session_state:
@@ -13,7 +13,7 @@ if "user_id" not in st.session_state:
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-"""退出登录"""
+# """退出登录"""
 def handle_logout():
     st.session_state.api_session = None
     st.session_state.username = None
@@ -21,7 +21,7 @@ def handle_logout():
     st.session_state.logged_in = False
     st.success("您已成功登出!")
 
-"""页面渲染"""
+# """页面渲染"""
 st.title("Online Judge 系统")
 
 # 如果用户已登录

@@ -12,7 +12,7 @@ if not st.session_state.get("logged_in"):
 api_session = st.session_state.api_session
 st.title("📝 题目列表与代码提交")
 
-"""加载题目"""
+# """加载题目"""
 if 'problems_list' not in st.session_state:
     with st.spinner("正在加载题目列表..."):
         st.session_state.problems_list = api_client.get_problems(api_session)
@@ -33,7 +33,7 @@ else:
     st.stop()
 
 
-"""提交代码"""
+# """提交代码"""
 st.header("提交代码")
 with st.form("submission_form"):
     problem_options = {f"{p['id']}: {p['title']}": p['id'] for p in problems}
@@ -50,7 +50,7 @@ with st.form("submission_form"):
     code = st.text_area("输入你的代码", height=400, key="code_input")
     submit_button = st.form_submit_button("提交")
 
-"""轮询"""
+# """轮询"""
 POLL_INTERVAL_SECONDS = 2
 POLL_LIMIT = 10
 
