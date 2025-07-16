@@ -3,6 +3,7 @@ from app.db.models import PlagiarismTaskModel
 import time
 
 def add_task(db:Session, submission_id:int, _problem_id:int, threshold:float):
+    """添加查重任务"""
     db_task = PlagiarismTaskModel(submission_id=submission_id, _problem_id=_problem_id, threshold=threshold)
     db.add(db_task)
     db.commit()
@@ -14,6 +15,7 @@ def add_task(db:Session, submission_id:int, _problem_id:int, threshold:float):
     return db_task
 
 def get_task(db:Session, task_id:int):
+    """获取查重结果"""
     db_task = db.get(PlagiarismTaskModel, task_id)
     if db_task is not None:
         return db_task

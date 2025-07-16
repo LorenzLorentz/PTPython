@@ -3,6 +3,8 @@ from app.db.models import SubmissionModel, SubmissionStatusCategory, ProblemMode
 from app.schemas.submission import SubmissionAddPayload
 
 def add_submission(db:Session, submission:SubmissionAddPayload, _problem_id:int, language_id:int, user_id:int):
+    """添加评测"""
+    # 去除其他key
     submission_data = submission.model_dump()
     submission_data.pop("problem_id")
     submission_data.pop("language_name")
@@ -13,19 +15,23 @@ def add_submission(db:Session, submission:SubmissionAddPayload, _problem_id:int,
     db.commit()
     db.refresh(db_submission)
     
+    # 进行评测
     from app.judger.judge import eval
     eval(db_submission.id)
 
+    # 构建pdg
     from app.plagiarism.interface import build
     build(db_submission.id)
 
     return db_submission
 
 def get_submission(db:Session, submission_id:int):
+    """根据id查找submission"""
     db_submission = db.query(SubmissionModel).filter(SubmissionModel.id == submission_id).first()
     return db_submission
 
 def get_submission_list(db:Session, user_id:int, problem_id:str, status:str, page:int, page_size:int):
+    """根据条件查找submission"""
     query = db.query(SubmissionModel)
 
     if user_id:
@@ -53,6 +59,7 @@ def get_submission_list(db:Session, user_id:int, problem_id:str, status:str, pag
     }
 
 def reset_submission(db:Session, submission_id:int):
+    """重新评测submission"""
     db_submission = db.query(SubmissionModel).filter(SubmissionModel.id == submission_id).first()
     if db_submission:
         db_submission.status = SubmissionStatusCategory.PENDING

@@ -8,6 +8,7 @@ from app.db.database import Base
 
 """Enums"""
 class StatusCategory(enum.Enum):
+    """单个评测点评测状态"""
     AC = "AC"
     WA = "WA"
     RE = "RE"
@@ -20,12 +21,14 @@ class StatusCategory(enum.Enum):
     UNK = "UNK"
 
 class SubmissionStatusCategory(enum.Enum):
+    """题目状态"""
     PENDING = "pending"
     SUCCESS = "success"
     ERROR = "error"
 
 """Models"""
 class UserModel(Base):
+    """用户模型"""
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
@@ -41,6 +44,7 @@ class UserModel(Base):
     logs = relationship("LogModel", back_populates="user")
 
 class SampleModel(Base):
+    """样例模型"""
     __tablename__ = "samples"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
@@ -54,6 +58,7 @@ class SampleModel(Base):
     problem = relationship("ProblemModel", back_populates="samples")
 
 class CaseModel(Base):
+    """测试点模型"""
     __tablename__ = "cases"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
@@ -68,6 +73,7 @@ class CaseModel(Base):
     test_case_results = relationship("TestCaseResultModel", back_populates="case")
 
 class ProblemModel(Base):
+    """题目模型"""
     __tablename__ = "problems"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
@@ -107,6 +113,7 @@ class ProblemModel(Base):
         return None
 
 class LanguageModel(Base):
+    """语言模型"""
     __tablename__ = "languages"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
@@ -123,6 +130,7 @@ class LanguageModel(Base):
     submissions = relationship("SubmissionModel", back_populates="language")
 
 class TestCaseResultModel(Base):
+    """测试点结果模型"""
     __tablename__ = "test_case_results"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
@@ -142,6 +150,7 @@ class TestCaseResultModel(Base):
     case = relationship("CaseModel", back_populates="test_case_results")
 
 class SubmissionModel(Base):
+    """提交模型"""
     __tablename__ = "submissions"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
@@ -178,6 +187,7 @@ class SubmissionModel(Base):
         return None
 
 class LogModel(Base):
+    """题目模型"""
     __tablename__ = "logs"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
@@ -201,6 +211,7 @@ class LogModel(Base):
         return None
     
 class PlagiarismTaskModel(Base):
+    """查重任务模型"""
     __tablename__ = "plagiarism_tasks"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)

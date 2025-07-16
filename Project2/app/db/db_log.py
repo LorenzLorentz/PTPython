@@ -3,6 +3,7 @@ from app.db.models import LogModel, ProblemModel
 from datetime import datetime
 
 def add_log(db:Session, user_id:int, _problem_id:int, action:str, status:int):
+    """添加查询记录"""
     db_log = LogModel(user_id=user_id, _problem_id=_problem_id, action=action, status=status)
     db.add(db_log)
     db.commit()
@@ -10,6 +11,7 @@ def add_log(db:Session, user_id:int, _problem_id:int, action:str, status:int):
     return db_log
 
 def get_log_list(db:Session, user_id:int, problem_id:str, offset:int, limit:int):
+    """按照条件查询记录"""
     query = db.query(LogModel)
 
     if user_id:
