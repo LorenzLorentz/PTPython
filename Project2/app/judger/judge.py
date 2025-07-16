@@ -54,7 +54,7 @@ def _prepare_spj(work_dir:str,problem:ProblemModel, memory_limit:int) -> Optiona
     spj_src_filename = f"spj{spj_lang.file_ext or ''}"
     
     spj_code_path = os.path.join(work_dir, spj_src_filename)
-    with open(spj_code_path, "w") as f:
+    with open(spj_code_path, "wb") as f:
         f.write(problem.spj_code)
 
     if spj_lang.compile_cmd:
@@ -99,10 +99,9 @@ def _run_spj(
         
         result_info = container.wait(timeout=2)
         status_code = result_info.get('StatusCode', -1)
-        spj_out = container.logs(stdout=True, stderr=False).decode('utf-8', errors='ignore')
-        
-        if status_code == 0:
-            return spj_out
+
+        if status_code == 0 or status_code == 1:
+            return 10
         else:
             return None
     except Exception as e:
@@ -170,6 +169,9 @@ def _run_single(
         elif status_code != 0:
             result_status = "RE"
         else:
+            with open("error.log", "a") as f:
+                print(judge_mode, file=f)
+
             if judge_mode == "standard":
                 if stdout.rstrip() != test_case_output.rstrip():
                     result_status = "WA"
