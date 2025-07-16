@@ -9,7 +9,7 @@ from app.schemas.language import LanguageInfoResponse, LanguageAddPayload, Langu
 from app.schemas.response import ResponseModel
 from app.api.utils.permission import require_login
 from app.api.utils.exception import APIException
-from app.judger.judge import check_cmd_available
+from app.judger.secure import check_cmd_available
 
 router = APIRouter()
 
