@@ -25,7 +25,7 @@ async def launch_plagiarism_task(payload:PlagiarismTaskLaunchPayload, db_session
     if db_submission is None:
         raise APIException(status_code=404, msg="提交不存在")
 
-    db_task = db.db_task.add_task(db=db_session, submission_id=submission_id, problem_id=problem_id, thresold=payload.threshold)
+    db_task = db.db_task.add_task(db=db_session, submission_id=submission_id, _problem_id=db_problem.id, threshold=payload.threshold)
     return {"msg": "success", "data": db_task}
 
 @router.get("/{task_id}", response_model=ResponseModel[PlagiarismTaskResultResponse])

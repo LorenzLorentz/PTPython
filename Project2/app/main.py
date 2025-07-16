@@ -5,12 +5,13 @@ from app.api.api import api_router
 from starlette.middleware.sessions import SessionMiddleware
 from app.api.utils.exception import APIException
 from app.db.database import SessionLocal, Base, engine
-from app.api.utils.data import seed_ini_data
+from app.api.utils.data import seed_ini_data, seed_other_data
 
-# Base.metadata.drop_all(bind=engine)
+Base.metadata.drop_all(bind=engine)
 Base.metadata.create_all(bind=engine)
 with SessionLocal() as db:
     seed_ini_data(db)
+    seed_other_data(db)
 
 app = FastAPI(title="OJ System")
 

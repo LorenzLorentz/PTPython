@@ -73,8 +73,8 @@ def gene_report(pdg1:dict, pdg2:dict, sim_res:dict) -> str:
     return json.dumps(report, indent=2)
 
 def get_report(pdg1:dict, pdg2:dict) -> str:
-    hashes1 = pdg1.pop("hashed_nodes")
-    hashes2 = pdg2.pop("hashed_nodes")
+    hashes1 = pdg1.get("hashed_nodes")
+    hashes2 = pdg2.get("hashed_nodes")
 
     similarity_results = GraphSimilarity(pdg1, pdg2, hashes1, hashes2).calculate_similarity()
 

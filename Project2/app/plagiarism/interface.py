@@ -15,10 +15,10 @@ def build(submission_id:int):
     db_submission.pdg = pdg
     db.commit()
 
-def _calc_single(pdg_self:dict, pdg_other:dict, submission_id:int) -> tuple[int, dict]:
+def _calc_single(pdg_self:dict, pdg_other:dict, submission_id:int) -> tuple[int, int, dict]:
     report = get_report(pdg_self, pdg_other)
     report = json.loads(report)
-    return (submission_id, report.get("sim_scores").get("sim_score"), report)
+    return submission_id, report.get("sim_scores").get("sim_score"), report
 
 def _collect(task_id:int):
     db = SessionLocal()
@@ -26,24 +26,24 @@ def _collect(task_id:int):
     db_submission = db.get(SubmissionModel, db_task.submission_id)
     pdg_self = db_submission.pdg
 
-    submissions = db.query(SubmissionModel).filter(SubmissionModel._problem_id==db_task._problem_id, SubmissionModel.language_name=="python").all()
+    submissions = db.query(SubmissionModel).filter(SubmissionModel._problem_id==db_task._problem_id, SubmissionModel.language_id==2).all()
 
     if len(submissions) <= 1:
         return
 
     results = []
     with ProcessPoolExecutor() as executor:
-            futures = {
-                executor.submit(
-                    _calc_single,
-                    pdg_self,
-                    submission.pdg,
-                    submission.id,
-                ): submission for submission in submissions
-            }
-            
-            for future in as_completed(futures):
-                results.append(future.result())
+        futures = {
+            executor.submit(
+                _calc_single,
+                pdg_self,
+                submission.pdg,
+                submission.id,
+            ): submission for submission in submissions
+        }
+        
+        for future in as_completed(futures):
+            results.append(future.result())
     
     max_sim = 0.0
     final_report = None

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from app.db.models import UserModel, LanguageModel
+from app.db.models import UserModel, LanguageModel, ProblemModel, CaseModel, SampleModel, SubmissionModel
 from app.api.utils.security import get_password_hash
 
 def seed_ini_data(db:Session):
@@ -41,3 +41,65 @@ def seed_ini_data(db:Session):
         db.add(python)
     
     db.commit()
+
+def seed_other_data(db:Session):
+    from app.judger.judge import eval
+    from app.plagiarism.interface import build
+    import time
+
+    # 加入问题
+    problem1 = ProblemModel(
+        problem_id = "problem 1",
+        title = "title 1",
+        description = "des 1",
+        input_description = "input des 1",
+        output_description = "output des 1",
+        constraints = "cons 1",
+    )
+
+    problem1.samples = [SampleModel(input="1 2", output="3") for _ in range(2)]
+    problem1.testcases = [CaseModel(input=f"{i} {i+1}", output=f"{2*i+1}") for i in range(3)]
+
+    problem2 = ProblemModel(
+        problem_id = "problem 2",
+        title = "title 2",
+        description = "des 2",
+        input_description = "input des 2",
+        output_description = "output des 2",
+        constraints = "cons 2",
+    )
+
+    problem2.samples = [SampleModel(input="1 2", output="3") for _ in range(2)]
+    problem2.testcases = [CaseModel(input=f"{i} {i+1}", output=f"{2*i+1}") for i in range(3)]
+
+    problem3 = ProblemModel(
+        problem_id = "problem 3",
+        title = "title 3",
+        description = "des 3",
+        input_description = "input des 3",
+        output_description = "output des 3",
+        constraints = "cons 3",
+    )
+
+    problem3.samples = [SampleModel(input="1 2", output="3") for _ in range(2)]
+    problem3.testcases = [CaseModel(input=f"{i} {i+1}", output=f"{2*i+1}") for i in range(3)]
+
+    db.add(problem1)
+    db.add(problem2)
+    db.add(problem3)
+    db.commit()
+
+    # 加入题目的提交
+    for i in range(3):
+        for j in range(3):
+            db_submission = SubmissionModel(
+                user_id=1, _problem_id=i+1, language_id=2,
+                code = "a, b = map(int, input().split())\nprint(a + b)",
+            )
+
+            db.add(db_submission)
+            db.commit()
+            db.refresh(db_submission)
+            eval(db_submission.id)
+            build(db_submission.id)
+            time.sleep(2)
