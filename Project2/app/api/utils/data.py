@@ -4,6 +4,9 @@ from app.db.models import UserModel, LanguageModel, ProblemModel, CaseModel, Sam
 from app.api.utils.security import get_password_hash
 
 def seed_ini_data(db:Session):
+    """注入初始数据: 管理员账户和两种语言"""
+
+    # 注入管理员账户
     admin = db.query(UserModel).filter(UserModel.username == "admin").first()
     if admin:
         admin.username = "admin"
@@ -17,6 +20,7 @@ def seed_ini_data(db:Session):
         )
         db.add(admin)
     
+    # 注入cpp语言
     cpp = db.query(LanguageModel).filter(LanguageModel.name == "cpp").first()
     if not cpp:
         cpp = LanguageModel(
@@ -29,6 +33,7 @@ def seed_ini_data(db:Session):
         )
         db.add(cpp)
     
+    # 注入python语言
     python = db.query(LanguageModel).filter(LanguageModel.name == "python").first()
     if not python:
         python = LanguageModel(
@@ -43,11 +48,12 @@ def seed_ini_data(db:Session):
     db.commit()
 
 def seed_other_data(db:Session):
+    """注入题目和提交数据, 构建环境"""
     from app.judger.judge import eval
     from app.plagiarism.interface import build
     import time
 
-    # 加入问题
+    # 注入问题
     problem1 = ProblemModel(
         problem_id = "problem 1",
         title = "title 1",
@@ -89,7 +95,7 @@ def seed_other_data(db:Session):
     db.add(problem3)
     db.commit()
 
-    # 加入题目的提交
+    # 注入题目提交
     for i in range(3):
         for j in range(3):
             db_submission = SubmissionModel(

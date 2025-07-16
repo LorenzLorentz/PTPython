@@ -17,7 +17,11 @@ router = APIRouter()
 
 @router.post("/", response_model=ResponseModel[SubmissionStatusResponse])
 async def submit(payload:SubmissionAddPayload, db_login:UserModel=Depends(require_notbanned), db_session:Session=Depends(get_db)):
-    """提交评测"""
+    """
+    提交评测
+    参数: problem_id, language, code
+    权限: 登录用户
+    """
     problem_id = payload.problem_id
     db_problem = db.db_problem.get_problem(db=db_session, problem_id=problem_id)
     if db_problem is None:
@@ -38,7 +42,11 @@ async def submit(payload:SubmissionAddPayload, db_login:UserModel=Depends(requir
 
 @router.get("/{submission_id}", response_model=ResponseModel[SubmissionResultResponse])
 async def get_submission_result(submission_id:int, db_login:UserModel=Depends(require_login), db_session:Session=Depends(get_db)):
-    """查询评测结果"""
+    """
+    查询评测结果
+    参数: submission_id
+    权限: 仅本人或管理员
+    """
     db_submission = db.db_submission.get_submission(db=db_session, submission_id=submission_id)
 
     if db_submission is None:
@@ -51,7 +59,11 @@ async def get_submission_result(submission_id:int, db_login:UserModel=Depends(re
 
 @router.get("/", response_model=ResponseModel[SubmissionListResponse])
 async def get_submission_result_list(params:SubmissionQueryParams=Depends(), db_login:UserModel=Depends(require_login), db_session:Session=Depends(get_db)):
-    """查询评测列表"""
+    """
+    查询评测列表
+    参数: user_id, problem_id, status, page, page_size
+    权限: 本人/管理员
+    """
     user_id = db_login.id
     is_admin = (db_login.role=="admin")
 
@@ -75,7 +87,11 @@ async def get_submission_result_list(params:SubmissionQueryParams=Depends(), db_
 
 @router.put("/{submission_id}/rejudge", response_model=ResponseModel[SubmissionStatusResponse])
 async def rejudge(submission_id:int, db_admin:UserModel=Depends(require_admin), db_session:Session=Depends(get_db)):
-    """重新评测"""
+    """
+    重新评测
+    参数: submission_id
+    权限: 管理员
+    """
     db_submission = db.db_submission.reset_submission(db=db_session, submission_id=submission_id)
     if db_submission is None:
         raise APIException(status_code=404, msg="评测不存在")
@@ -84,7 +100,11 @@ async def rejudge(submission_id:int, db_admin:UserModel=Depends(require_admin), 
 
 @router.get("/{submission_id}/log", response_model=ResponseModel[Union[SubmissionLogResponse, SubmissionLogDetailResponse]])
 async def get_submission_log(submission_id:int, db_login:UserModel=Depends(require_login), db_session:Session=Depends(get_db)):
-    """查询评测日志"""
+    """
+    查询评测日志
+    参数: submission_id
+    权限: 本人或管理员
+    """
     db_submission = db.db_submission.get_submission(db=db_session, submission_id=submission_id)
     if db_submission is None:
         db.db_log.add_log(db=db_session, user_id=db_login.id, _problem_id=None, action="view_log", status=404)

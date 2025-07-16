@@ -15,7 +15,11 @@ router = APIRouter()
 
 @router.post("/", response_model=ResponseModel[LanguageInfoResponse])
 async def add_language(payload:LanguageAddPayload, user_login:UserModel=Depends(require_login), db_session:Session=Depends(get_db)):
-    """动态注册新语言"""
+    """
+    动态注册新语言
+    参数: 见LanguageAddPayload
+    权限: 已登录用户
+    """
     exist = db.db_language.get_language_by_name(db=db_session, name=payload.name)
     if exist:
         return {"msg": "language registered", "data": exist}
@@ -28,5 +32,9 @@ async def add_language(payload:LanguageAddPayload, user_login:UserModel=Depends(
 
 @router.get("/", response_model=ResponseModel[LanguageInfoListResponse])
 async def get_language_list(db_session:Session=Depends(get_db)):
-    """查询支持语言列表"""
+    """
+    查询支持语言列表
+    参数: 无
+    权限: 无
+    """
     return {"msg": "success", "data": db.db_language.get_language_list(db=db_session)}

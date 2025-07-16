@@ -10,6 +10,7 @@ from app.api import plagiarism
 
 api_router = APIRouter()
 
+"""导入api路由"""
 api_router.include_router(problems.router, prefix="/problems", tags=["Problem Management"])
 api_router.include_router(users.router, prefix="/users", tags=["User Management"])
 api_router.include_router(auth.router, prefix="/auth", tags=["User Management"])

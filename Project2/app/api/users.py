@@ -17,7 +17,11 @@ router = APIRouter()
 
 @router.post("/", response_model=ResponseModel[UserInfoResponse])
 async def signup(payload:UserAddPayload, db_session:Session=Depends(get_db)):
-    """用户注册"""
+    """
+    用户注册
+    参数: username, password
+    权限: 所有人
+    """
     if len(payload.username) < 3 or len(payload.username) > 20:
         raise APIException(status_code=400, msg="用户名长度必须在3到20个字符之间")
     
@@ -33,7 +37,11 @@ async def signup(payload:UserAddPayload, db_session:Session=Depends(get_db)):
 
 @router.post("/admin", response_model=ResponseModel[UserNameResponse])
 async def signup_admin(payload:UserAddPayload, db_admin:UserModel=Depends(require_admin), db_session:Session=Depends(get_db)):
-    """创建管理员账户"""
+    """
+    创建管理员账户
+    参数: user_id
+    权限: 管理员
+    """
     if len(payload.username) < 3 or len(payload.username) > 40:
         raise APIException(status_code=400, msg="用户名长度必须在3到20个字符之间")
     
@@ -49,7 +57,11 @@ async def signup_admin(payload:UserAddPayload, db_admin:UserModel=Depends(requir
 
 @router.get("/{user_id}", response_model=ResponseModel[UserInfoResponse])
 async def get_user(user_id:int, db_login:UserModel=Depends(require_login), db_session:Session=Depends(get_db)):
-    """查询用户信息"""
+    """
+    查询用户信息
+    参数: user_id
+    权限: 本人或管理员
+    """
     if db_login.role != "admin" and db_login.id != user_id:
         raise APIException(status_code=403, msg="用户无权限")
     
@@ -61,7 +73,11 @@ async def get_user(user_id:int, db_login:UserModel=Depends(require_login), db_se
 
 @router.put("/{user_id}/role", response_model=ResponseModel[UserRoleResponse])
 async def permission_adjust(user_id:int, payload:UserRolePayload, db_admin:UserModel=Depends(require_admin), db_session:Session=Depends(get_db)):
-    """用户权限变更"""
+    """
+    用户权限变更
+    参数: user_id, role
+    权限: 管理员
+    """
     new_role = payload.role
     if not (new_role == "admin" or new_role=="user" or new_role=="banned"):
         raise APIException(status_code=400, msg="新权限值无效")
@@ -76,6 +92,10 @@ async def permission_adjust(user_id:int, payload:UserRolePayload, db_admin:UserM
 
 @router.get("/", response_model=ResponseModel[UserListResponse])
 async def get_user_list(params:UserQueryParams=Depends(), db_admin:UserModel=Depends(require_admin), db_session=Depends(get_db)):
-    """用户列表查询"""
+    """
+    用户列表查询
+    参数: page, page_size
+    权限: 管理员
+    """
     result = db.db_user.get_user_list(db=db_session, offset=(params.page-1)*params.page_size, limit=params.page_size)
     return {"msg": "success", "data": result}
