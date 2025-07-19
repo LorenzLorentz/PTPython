@@ -83,7 +83,12 @@ def test_get_submission_result(client):
     submission_data = {
         "problem_id": problem_id,
         "language": "python",
-        "code": "a, b = map(int, input().split())\nprint(a + b)"
+        "code": """
+a, b = map(int, input().split())
+for _ in range(10**18):
+    pass
+print(a + b)
+"""
     }
 
     submit_response = client.post("/api/submissions/", json=submission_data)
