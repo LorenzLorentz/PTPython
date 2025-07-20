@@ -1,0 +1,31 @@
+# Simple GitLab CI/CD configuration - just run tests on push
+image: python:3.12-slim
+
+# Single stage - just test
+stages:
+  - test
+
+# Cache for faster builds
+cache:
+  key: "$CI_COMMIT_REF_SLUG"
+  paths:
+    - .cache/pip
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  PYTHONPATH: "$CI_PROJECT_DIR"
+
+# Run tests
+test:
+  stage: test
+  before_script:
+    - python --version
+    - pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade pip
+    - pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
+  script:
+    - echo "Running tests..."
+    - python -m pytest tests/ -v
+    - echo "✅ Tests completed"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+    - if: $CI_MERGE_REQUEST_IID

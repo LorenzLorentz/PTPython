@@ -1,0 +1,17 @@
+__pycacge__/
+*.pyc
+*.out
+*.jpg
+*.json
+temp.*
+test.*
+temp/
+*.csv
+error/
+error.*
+_git.log
+*.db
+.pytest_cache/
+create_db.py
+.git_log
+cmd.md

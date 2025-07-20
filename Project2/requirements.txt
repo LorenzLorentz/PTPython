@@ -1,0 +1,22 @@
+docker_py==1.10.6
+passlib==1.7.4
+pydantic==2.11.7
+pytest==8.4.1
+Requests==2.32.4
+SQLAlchemy==2.0.41
+starlette==0.47.1
+fastapi[all]
+celery[redis]
+bcrypt
+streamlit
+streamlit-autorefresh
+# Core dependencies
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
+starlette>=0.27.0
+
+# Testing dependencies
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+httpx>=0.25.0
