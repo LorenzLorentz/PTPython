@@ -12,43 +12,55 @@
 - **后端:** 基于 `FastAPI` 构建API服务. 这是整个系统的核心, 负责处理业务逻辑, 包括用户认证、题目管理、提交处理等.
 - **数据库:** 使用 `SQLAlchemy` 作为数据库管理工具, 负责存储和管理所有数据, 例如用户信息、题目、提交记录等; 还可以进行数据持久化相关操作.
 - **评测模块:** 负责编译和运行用户提交的代码, 基于 `Docker` 容器实现, 为每次评测提供一个隔离、安全、资源受限的沙箱环境, 保证了评测过程的安全性; 同时使用线程池进行并行评测, 不阻塞后端交互.
-- **查重模块:** 基于PDG进行查重任务, 从代码的语义结构层面分析相似性, 比语法树分析更为精准.
+- **查重模块:** 基于PDG进行查重任务, 从代码的语义结构层面分析相似性.
 
 系统整体架构与数据流可以用下图表示:
 
 ```mermaid
 graph TD
     subgraph "用户端"
-        A[用户 (User)]
+        A["用户 (User)"]
     end
 
     subgraph "展示层"
-        B[前端 Web 界面 (Streamlit)]
+        B["前端 Web 界面 (Streamlit)"]
     end
 
-    subgraph "应用与服务层 (Application & Service Layer)"
-        C{后端 API 服务 (FastAPI)}
-        E[判题服务 (Judger)]
-        F[代码查重服务 (Plagiarism)]
+    subgraph "应用与服务层"
+        C{"后端 API 服务 (FastAPI)"}
+        E["判题服务 (Judger)"]
+        F["代码查重服务 (Plagiarism)"]
     end
 
-    subgraph "执行环境 (Execution Environment)"
-        G[Docker 容器 (GCC / Python)]
+    subgraph "执行环境"
+        G["Docker 容器 (GCC / Python)"]
     end
 
-    subgraph "数据库曾"
-        D[关系型数据库 (Database)]
+    subgraph "数据库层"
+        D["关系型数据库"]
     end
 
-    A -- "浏览/提交 (HTTP/S)" --> B
+    %% 核心流程
+    A -- "浏览/提交" --> B
     B -- "API 请求" --> C
-    C -- "ORM (SQLAlchemy)" --> D
-    C -- "发起异步任务" --> E
-    C -- "发起异步任务" --> F
+
+    %% C层与数据库的交互
+    C -- "读写业务数据" --> D
+
+    %% 异步任务通过消息队列解耦
+    C -- "发布'判题任务'" --> E
+    C -- "发布'查重任务'" --> F
+
+    %% 判题流程
     E -- "执行代码" --> G
     G -- "返回结果" --> E
-    E -- "更新状态" --> C
-    F -- "计算相似度" --> C
+    
+    %% 查重服务需要读取历史数据
+    F -- "读取历史代码" --> D
+
+    %% 工作服务直接将结果写回数据库
+    E -- "回写判题结果" --> D
+    F -- "回写查重结果" --> D
 ```
 
 #### 1.2 系统主要功能
@@ -97,13 +109,13 @@ graph TD
 
 各模块技术选型
 
-1. 后端 (app/ 目录)
+1. 后端 (`app/ 目录`)
 
 - Web 框架: 使用了 FastAPI 框架.
     - app/api/: 存放各个路由模块 (如 users.py, problems.py)
     - app/schemas/: 使用Pydantic框架, 存放数据校验模型 (如 user.py, problem.py), 用于数据验证和序列化.
 
-- 数据库: app/db/
+- 数据库: `app/db/`
     - models.py: 这个文件通常用于定义数据表模型
     - database.py: 包含了数据库连接和会话管理的配置.
 
@@ -111,9 +123,11 @@ graph TD
 
 - 代码查重模块 (`plagiarism/`): 使用了 ast -> cfg -> pdg的技术
 
-2. 前端 (frontend/ 目录)
+2. 前端 (`frontend`)
     - Web 框架: 使用了Streamlit 框架, 快速构建数据科学和内部工具类的 Web 应用, 每个 .py文件对应一个页面.
     - API 客户端: `frontend/api/api_client.py` 文件封装了与后端FastAPI 服务进行 HTTP 通信的客户端.
+
+<div STYLE="page-break-after: always;"></div>
 
 ### 2. 核心技术与实现细节
 
@@ -145,16 +159,17 @@ class ProblemModel(Base):
 
 1.  **级联删除与外键约束:**
     在 OJ 系统中, 删除一个实体 (如 `ProblemModel`) 时, 必须确保其所有关联的从属数据 (如 `CaseModel`, `SampleModel`) 也被一并清除, 以维护数据一致性.
+    
     - **解决方案:** 我们在 `relationship` 中配置了 `cascade="all, delete-orphan"` 选项. 这使得当一个 `ProblemModel` 实例被删除时, SQLAlchemy 会自动删除所有与之关联的 `SampleModel` 和 `CaseModel` 实例.
     - **关键配置:** SQLite 默认不强制开启外键约束, 这可能导致级联删除失效. 为解决此问题, 我们在 `app/db/database.py` 中通过 SQLAlchemy 的事件监听系统, 在每次数据库连接建立时自动执行 `PRAGMA foreign_keys=ON`, 从而确保了外键约束的强制执行.
     ```python
     # app/db/database.py
     def _fk_pragma_on_connect(dbapi_con, con_record):
         dbapi_con.execute('PRAGMA foreign_keys=ON')
-
+    
     listen(engine, 'connect', _fk_pragma_on_connect)
     ```
-
+    
 2.  **业务主键与数据库主键的分离:**
     系统中许多实体对外暴露的是一个业务逻辑上的ID (如题目的 `problem_id`), 而非数据库自增的整数主键 `id`. 在进行数据转换和查询时需要处理这种映射关系.
     - **解决方案:** 我们使用了 SQLAlchemy 的 `hybrid_property`. 它能创建一个可以像普通字段一样访问的属性, 但其值是动态计算的, 可以来自关联对象. 例如, `SubmissionModel` 需要返回其所属题目的 `problem_id`, 而非数据库中的 `_problem_id` (外键).
@@ -164,14 +179,13 @@ class ProblemModel(Base):
         # ...
         _problem_id = Column(Integer, ForeignKey("problems.id"), ...)
         problem = relationship("ProblemModel", back_populates="submissions")
-
+    
         @hybrid_property
         def problem_id(self) -> str | None:
             if self.problem:
                 return self.problem.problem_id
             return None
     ```
-    这个设计使得 API 在序列化 `SubmissionModel` 对象时, 能直接返回用户友好的 `problem_id`, 而无需在业务代码中进行额外的查询和拼接.
 
 #### 2.2 评测
 
@@ -200,13 +214,14 @@ class ProblemModel(Base):
 
 后端 API 基于 **FastAPI** 构建, 最核心的用途在于依赖注入系统和与 **Pydantic**, 这极大地简化了数据校验、序列化和依赖管理.
 
-- **依赖注入:** 在项目中, `Depends(get_db)` 和 `Depends(require_login)` 等依赖项被广泛使用.
-    - **会话管理:** `app/db/database.py` 中的 `get_db` 函数是典型的依赖注入应用. 它通过 `yield` 向 API 函数提供一个数据库会话 (`Session`), 并在 `finally` 块中确保会话被关闭. 这种模式优雅地处理了数据库连接的生命周期, 保证了资源的可靠释放.
+- **依赖注入:** 在项目中, 使用了`Depends(get_db)` 和 `Depends(require_login)` 等依赖项.
+    - **会话管理:** `app/db/database.py` 中的 `get_db` 函数通过 `yield` 向 API 函数提供一个数据库会话 (`Session`), 并在 `finally` 块中确保会话被关闭, 处理了数据库连接的生命周期, 保证了资源的可靠释放.
     - **认证与授权:** `require_login` 和 `require_admin` 等依赖项在执行业务逻辑前完成了用户身份验证和权限检查, 将认证逻辑与业务逻辑解耦.
 
 - **数据校验与序列化 (Pydantic):** Pydantic 在项目中扮演着数据校验、转换和文档生成的角色. 通过定义 `BaseModel` 的子类, 我们可以清晰地声明 API 的数据结构.
 
 **代码示例: `app/schemas/problem.py`**
+
 ```python
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List
@@ -255,6 +270,8 @@ class ProblemAddPayload(ProblemBase): # ProblemBase 继承自 BaseModel
     - `st_autorefresh` 组件被用来定时触发页面刷新.
     - 在每次刷新时, 前端会调用 `api_client.get_submission_result` 查询提交状态.
     - 一旦状态变为 "success" 或 "error", 或者轮询次数达到上限, 轮询就会停止, 并将最终结果展示给用户. 这种方式为用户提供了近乎实时的反馈.
+
+<div STYLE="page-break-after: always;"></div>
 
 ### 3. 成果展示
 
@@ -322,9 +339,10 @@ class ProblemAddPayload(ProblemBase): # ProblemBase 继承自 BaseModel
 
 - **提交代码**: `POST /api/submissions/`，成功后返回提交ID及初始状态"pending"。
 - **实时获取评测结果**: `GET /api/submissions/{submission_id}`，可轮询获取最终结果。
-- **返回多样化的评测结果**: AC, WA, TLE, MLE, RE, CE, SE 等。
+- **每个测试点多样化的评测结果**: AC, WA, TLE, MLE, RE, CE 等。
 
 **提交代码后接口返回示例 (`POST /api/submissions/`)**:
+
 ```json
 {
   "code": 200,
@@ -362,7 +380,7 @@ class ProblemAddPayload(ProblemBase): # ProblemBase 继承自 BaseModel
 }
 ```
 
-3. 提交记录与排名
+3. 提交记录
 
 - **提交记录**: `GET /api/submissions/` 并提供 `user_id` 或 `problem_id` 作为参数，可以获取提交列表。
 - **重判功能**: 管理员通过 `PUT /api/submissions/{submission_id}/rejudge` 发起重判。
@@ -426,8 +444,10 @@ class ProblemAddPayload(ProblemBase): # ProblemBase 继承自 BaseModel
 
 ```bash
 [{'test_case_result_id': 1, 'result': 'TLE', 'time': 1.0, 'memory': 0, 'output': '', 'err_msg': "Container wait timed out.", 'case_id': 1},{'test_case_result_id': 2, 'result': 'TLE', 'time': 1.0, 'memory': 0, 'output': '', 'err_msg': "Container wait timed out.", 'case_id': 2}]
-0.0 0.0 StatusCategory.UNK 0 10
+0.0 0.0 StatusCategory.ERROR 0 10
 ```
+
+<div STYLE="page-break-after: always;"></div>
 
 ### 4. 总结与建议
 
@@ -455,7 +475,7 @@ class ProblemAddPayload(ProblemBase): # ProblemBase 继承自 BaseModel
 
 (3) 我还有个小建议, 可以在文档开始部分讲解一下这个系统的整体架构, 指点一下后端 api 路由 + 数据库的设计模式, 这样开始做的时候不会那么迷茫.
 
-#### 4.3. 时间投入
+#### 4.3. 时间投入与大模型使用
 
 后端投入时间大概在25个小时
 
@@ -466,5 +486,9 @@ class ProblemAddPayload(ProblemBase): # ProblemBase 继承自 BaseModel
 查重模块大概在10小时左右 (但是实现很糟糕-_-)
 
 总时间投入估计在50小时左右
+
+大模型指导了我api路由 + 数据库的设计模式, 为我讲解了查重模块的算法骨架 (虽然最后我的实现还是有问题, 并且没有完全解决), 在docker的环境配置和相关debug上提供了大量指导. 在此予以诚挚感谢🙏. (Google大善人, 让我等卑微学生得用Gemini 2.5pro)
+
+
 
 最后再次感谢老师和各位助教设计了这次理论与实践紧密结合的作业, 让我受益匪浅.
